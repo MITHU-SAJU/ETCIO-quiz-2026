@@ -10,7 +10,10 @@ function App() {
     <Router>
       <Toaster position="top-center" />
       <Routes>
-        {/* QR Start Page */}
+        {/* Root Redirect to Display */}
+        <Route path="/" element={<Navigate to="/display/etcio2026" replace />} />
+        
+        {/* QR Start Page (Phone scans this) */}
         <Route path="/start/:eventId" element={<StartPage />} />
         
         {/* Game Page */}
@@ -19,11 +22,11 @@ function App() {
         {/* Result Page */}
         <Route path="/result/:sessionId" element={<ResultPage />} />
         
-        {/* LED Display Page */}
+        {/* LED Display Page (Big Screen) */}
         <Route path="/display/:eventId" element={<DisplayPage />} />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/start/etcio2026" replace />} />
+        {/* Fallback to Display */}
+        <Route path="*" element={<Navigate to="/display/etcio2026" replace />} />
       </Routes>
     </Router>
   )
