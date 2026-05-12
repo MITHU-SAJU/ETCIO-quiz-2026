@@ -37,14 +37,14 @@ export default function ResultPage() {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-md-10 col-lg-8">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="card bg-dark text-white card-enterprise p-4 p-md-5 mb-5 text-center shadow-lg"
             >
               <h1 className="h6 fw-bold mb-2 text-uppercase tracking-widest text-secondary">Challenge Completed</h1>
               <div className="display-1 fw-black mb-4">{result.totalScore}</div>
-              
+
               <div className="row g-3 mb-4">
                 <div className="col-6">
                   <div className="bg-secondary bg-opacity-25 p-3 rounded-4">

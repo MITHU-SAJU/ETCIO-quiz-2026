@@ -12,16 +12,16 @@ function App() {
       <Routes>
         {/* Root Redirect to Display */}
         <Route path="/" element={<Navigate to="/display/etcio2026" replace />} />
-        
+
         {/* QR Start Page (Phone scans this) */}
         <Route path="/start/:eventId" element={<StartPage />} />
-        
+
         {/* Game Page */}
         <Route path="/game/:sessionId" element={<GamePage />} />
-        
+
         {/* Result Page */}
         <Route path="/result/:sessionId" element={<ResultPage />} />
-        
+
         {/* LED Display Page (Big Screen) */}
         <Route path="/display/:eventId" element={<DisplayPage />} />
 
