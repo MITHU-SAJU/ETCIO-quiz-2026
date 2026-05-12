@@ -1,0 +1,45 @@
+.join-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.join-card {
+  width: 400px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid cyan;
+  padding: 40px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.join-card h1 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.join-card p {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.join-card input {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 20px;
+  background: #111827;
+  border: none;
+  border-radius: 10px;
+  color: white;
+}
+
+.join-card button {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  background: cyan;
+  color: black;
+  border-radius: 10px;
+  cursor: pointer;
+}

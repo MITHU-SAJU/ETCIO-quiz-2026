@@ -1,0 +1,55 @@
+.screen-container {
+  min-height: 100vh;
+  padding: 40px;
+  text-align: center;
+}
+
+.timer-circle {
+  width: 220px;
+  height: 220px;
+  border: 8px solid cyan;
+  border-radius: 50%;
+  margin: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
+  box-shadow: 0 0 40px cyan;
+}
+
+.timer-circle h1 {
+  font-size: 80px;
+}
+
+.screen-content h2 {
+  font-size: 50px;
+  margin-bottom: 20px;
+  color: cyan;
+}
+
+.screen-content p {
+  font-size: 22px;
+  margin-bottom: 40px;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 25px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.option-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid cyan;
+  padding: 40px;
+  border-radius: 20px;
+  font-size: 24px;
+  transition: 0.3s;
+}
+
+.option-card:hover {
+  transform: scale(1.03);
+  background: rgba(0,255,255,0.15);
+}
