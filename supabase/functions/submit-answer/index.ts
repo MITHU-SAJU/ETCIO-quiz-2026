@@ -127,11 +127,20 @@ serve(async (req) => {
         .eq('id', session.user_id)
     }
 
+    // 8. Fetch correct option for feedback
+    const { data: correctOption } = await supabaseClient
+      .from('question_options')
+      .select('option_key')
+      .eq('question_id', questionId)
+      .eq('score', 100)
+      .single()
+
     return new Response(JSON.stringify({
       nextQuestionAvailable: !isCompleted,
       completed: isCompleted,
       totalScore: updatedTotalScore,
-      redirectToResult: isCompleted
+      redirectToResult: isCompleted,
+      correctOption: correctOption?.option_key
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,

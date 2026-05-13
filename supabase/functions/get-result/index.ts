@@ -23,7 +23,7 @@ serve(async (req) => {
     // 1. Get session and user
     const { data: session, error: sError } = await supabaseClient
       .from('game_sessions')
-      .select('*, users(*)')
+      .select('*, users(*), events(event_code)')
       .eq('id', sessionId)
       .single()
 
@@ -53,6 +53,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       user: session.users,
+      eventCode: session.events?.event_code || 'etcio2026',
       result: {
         totalScore: session.total_score,
         totalResponseTime: session.total_response_time,

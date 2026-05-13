@@ -63,82 +63,80 @@ export default function DisplayPage() {
   const { top10, stats, recentPlayer } = data
 
   return (
-    <div className="bg-black text-white min-vh-100 p-4 p-md-5 d-flex flex-column">
-      {/* Top Banner */}
-      <div className="row align-items-end mb-5 border-bottom border-5 border-white pb-4">
-        <div className="col-12 col-lg-9">
-          <h1 className="fw-black text-uppercase tracking-tighter mb-2" style={{ fontSize: 'calc(2rem + 3vw)', lineHeight: '1' }}>
-            60-Second <span className="text-primary">CIO</span> Challenge
-          </h1>
-          <p className="h4 text-secondary fw-bold text-uppercase tracking-widest">Leadership under pressure</p>
-        </div>
-        <div className="col-12 col-lg-3 text-lg-end mt-4 mt-lg-0">
-          <div className="display-4 fw-black mb-0 text-primary">{stats.totalCompleted}</div>
-          <div className="h6 text-secondary fw-bold text-uppercase mb-0">Players Finished</div>
-        </div>
-      </div>
+    <div
+      className="vh-100 overflow-hidden"
+      style={{
+        background: "#f4f4f4",
+      }}
+    >
+      <div className="container-fluid h-100 px-3 px-lg-4 py-3">
 
-      <div className="row g-4 flex-grow-1">
-        {/* Left: QR Code & Stats */}
-        <div className="col-12 col-lg-4 d-flex flex-column gap-4">
-          {/* QR Code Section */}
-          <div className="bg-white rounded-5 p-4 text-center shadow-lg">
-            <h3 className="h6 fw-bold text-dark text-uppercase mb-3">Scan to Join</h3>
-            <div className="p-3 bg-white d-inline-block rounded-4 shadow-inner mb-3">
-              <QRCode 
-                value={`${window.location.origin}/start/${eventId}`} 
-                size={200}
-                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                viewBox={`0 0 256 256`}
-              />
-            </div>
-            <p className="text-dark small fw-bold mb-0 opacity-75">
-              {window.location.origin}/start/{eventId}
-            </p>
-          </div>
+        {/* MAIN SECTION */}
+        <div
+          className="row g-3"
+          style={{
+            height: "calc(100vh - 120px)",
+          }}
+        >
 
-          <div className="bg-dark bg-opacity-50 border border-secondary border-opacity-25 rounded-5 p-4 p-md-5 flex-grow-1">
-            <h3 className="h5 fw-bold text-secondary text-uppercase mb-5">Live Statistics</h3>
-            <div className="row row-cols-1 g-5">
-              <div className="col">
-                <div className="display-5 fw-black text-white mb-1">{stats.highestScore}</div>
-                <div className="small text-secondary text-uppercase fw-bold">Highest Score</div>
-              </div>
-              <div className="col">
-                <div className="display-5 fw-black text-white mb-1">{stats.averageScore}</div>
-                <div className="small text-secondary text-uppercase fw-bold">Average Score</div>
-              </div>
-              <div className="col">
-                <div className="display-5 fw-black text-white mb-1">{stats.totalRegistered}</div>
-                <div className="small text-secondary text-uppercase fw-bold">Total Participants</div>
-              </div>
-            </div>
-          </div>
+          {/* RIGHT SIDE */}
+          <div className="col-12 h-100">
 
-          <AnimatePresence mode="wait">
-            {recentPlayer && (
-              <motion.div 
-                key={recentPlayer.user_id}
-                initial={{ x: -100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                className="bg-primary bg-gradient rounded-5 p-4 p-md-5 text-white shadow-lg"
+            <div
+              className="rounded-5 p-4 h-100 d-flex flex-column"
+              style={{
+                background: "#ffffff",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
+              }}
+            >
+
+              {/* HEADER */}
+              <div className="mb-4">
+
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    fontWeight: "700",
+                    letterSpacing: "2px",
+                    color: "#8a8a8a",
+                    textTransform: "uppercase",
+                    marginBottom: "10px",
+                  }}
+                >
+                  Live Rankings
+                </div>
+
+                <h2
+                  className="mb-0"
+                  style={{
+                    fontSize: "3rem",
+                    fontWeight: "700",
+                    color: "#2b2b2b",
+                    letterSpacing: "-2px",
+                    lineHeight: 1,
+                  }}
+                >
+                  Top 10 Performers
+                </h2>
+
+              </div>
+
+              {/* LEADERBOARD */}
+              <div
+                className="flex-grow-1 overflow-hidden"
               >
-                <h3 className="h6 fw-bold text-white text-opacity-75 text-uppercase mb-4">Just Finished</h3>
-                <div className="h2 fw-black mb-1 text-truncate">{recentPlayer.name}</div>
-                <div className="h6 fw-medium text-white text-opacity-75 mb-4 text-truncate">{recentPlayer.company}</div>
-                <div className="display-4 fw-black mt-3">{recentPlayer.total_score}</div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <Leaderboard
+                  players={top10?.slice(0, 10)}
+                  darkMode={false}
+                />
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
 
-        {/* Right: Top 10 Leaderboard */}
-        <div className="col-12 col-lg-8">
-          <div className="bg-white rounded-5 p-4 p-md-5 h-100 shadow-sm overflow-hidden">
-            <h2 className="display-6 fw-black text-dark mb-5 border-start border-5 border-dark ps-4 text-uppercase">Top Performers</h2>
-            <Leaderboard players={top10} darkMode={false} />
-          </div>
-        </div>
       </div>
     </div>
   )

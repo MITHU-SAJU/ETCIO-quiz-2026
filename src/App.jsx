@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import StartPage from './pages/StartPage'
+import LandingPage from './pages/LandingPage'
 import GamePage from './pages/GamePage'
 import ResultPage from './pages/ResultPage'
 import DisplayPage from './pages/DisplayPage'
@@ -11,10 +12,13 @@ function App() {
       <Toaster position="top-center" />
       <Routes>
         {/* Root Redirect to Display */}
-        <Route path="/" element={<Navigate to="/display/etcio2026" replace />} />
+        <Route path="/" element={<Navigate to="/start/etcio2026" replace />} />
 
-        {/* QR Start Page (Phone scans this) */}
-        <Route path="/start/:eventId" element={<StartPage />} />
+        {/* Entry Point: Scan Badge */}
+        <Route path="/start/:eventId" element={<LandingPage />} />
+
+        {/* Manual Registration Page */}
+        <Route path="/register/:eventId" element={<StartPage />} />
 
         {/* Game Page */}
         <Route path="/game/:sessionId" element={<GamePage />} />

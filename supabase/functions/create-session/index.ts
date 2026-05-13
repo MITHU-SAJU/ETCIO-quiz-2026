@@ -51,33 +51,21 @@ serve(async (req) => {
 
     if (userError) throw userError
 
-    // 3. Fetch questions by category
-    const categories = [
-      'Cybersecurity',
-      'AI Governance',
-      'Cloud / Infrastructure',
-      'Data Breach / Compliance',
-      'Digital Transformation / Leadership'
-    ]
+    // 3. Fetch all active questions for the event
+    const { data: allQuestions, error: qError } = await supabaseClient
+      .from('questions')
+      .select('id')
+      .eq('event_id', event.id)
+      .eq('is_active', true)
 
-    const selectedQuestionIds = []
-
-    for (const category of categories) {
-      const { data: questions, error: qError } = await supabaseClient
-        .from('questions')
-        .select('id')
-        .eq('event_id', event.id)
-        .eq('category', category)
-        .eq('is_active', true)
-
-      if (qError) throw qError
-      if (!questions || questions.length === 0) {
-        throw new Error(`No questions found for category: ${category}`)
-      }
-
-      const randomIdx = Math.floor(Math.random() * questions.length)
-      selectedQuestionIds.push(questions[randomIdx].id)
+    if (qError) throw qError
+    if (!allQuestions || allQuestions.length < 5) {
+      throw new Error(`Not enough active questions found for the event (found ${allQuestions?.length ?? 0}, need at least 5)`)
     }
+
+    // Pick 5 random unique questions
+    const shuffled = [...allQuestions].sort(() => 0.5 - Math.random())
+    const selectedQuestionIds = shuffled.slice(0, 5).map(q => q.id)
 
     // 4. Create game session
     const { data: session, error: sessionError } = await supabaseClient
@@ -95,9 +83,35 @@ serve(async (req) => {
 
     if (sessionError) throw sessionError
 
+    // 5. Fetch all question details for pre-fetching (Speed Optimization)
+    const { data: questions, error: questionsError } = await supabaseClient
+      .from('questions')
+      .select('id, category, title, scenario')
+      .in('id', selectedQuestionIds)
+
+    if (questionsError) throw questionsError
+
+    // Fetch options for all these questions
+    const { data: allOptions, error: optionsError } = await supabaseClient
+      .from('question_options')
+      .select('question_id, option_key, option_text')
+      .in('question_id', selectedQuestionIds)
+
+    if (optionsError) throw optionsError
+
+    // Map options to questions
+    const questionsWithDetails = selectedQuestionIds.map(id => {
+      const q = questions.find(q => q.id === id)
+      return {
+        ...q,
+        options: allOptions.filter(opt => opt.question_id === id)
+      }
+    })
+
     return new Response(JSON.stringify({
       userId: user.id,
-      sessionId: session.id
+      sessionId: session.id,
+      questions: questionsWithDetails
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,

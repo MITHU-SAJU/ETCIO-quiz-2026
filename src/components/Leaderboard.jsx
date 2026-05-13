@@ -1,40 +1,126 @@
 import { motion } from 'framer-motion'
 
-export default function Leaderboard({ players, currentUserId, darkMode = false }) {
+export default function Leaderboard({
+  players,
+  currentUserId,
+  darkMode = false
+}) {
+
   if (players.length === 0) {
-    return <div className="p-10 text-center text-gray-400">No completed players yet.</div>
+    return (
+      <div className="p-5 text-center text-muted">
+        No completed players yet.
+      </div>
+    )
   }
 
   return (
-    <div className={`table-responsive ${darkMode ? 'text-white' : 'text-dark'}`}>
-      <table className={`table table-hover mb-0 ${darkMode ? 'table-dark' : 'table-light'}`}>
-        <thead className="small text-uppercase text-secondary opacity-75">
-          <tr>
-            <th className="px-4 py-3 border-0">Rank</th>
-            <th className="px-4 py-3 border-0">Leader</th>
-            <th className="px-4 py-3 border-0 text-end">Score</th>
-          </tr>
-        </thead>
-        <tbody className="border-0">
-          {players.map((player, index) => (
-            <motion.tr 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              key={player.user_id} 
-              className={player.user_id === currentUserId ? 'table-primary' : ''}
-              style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}
+    <div className="w-100">
+
+      {/* HEADER */}
+      <div
+        className={`row mx-0 py-3 border-bottom ${darkMode ? 'text-white' : 'text-dark'
+          }`}
+        style={{
+          borderColor: "rgba(0,0,0,0.08)",
+        }}
+      >
+
+        <div className="col-2 fw-bold text-uppercase small">
+          Rank
+        </div>
+
+        <div className="col-7 fw-bold text-uppercase small">
+          Leader
+        </div>
+
+        <div className="col-3 fw-bold text-uppercase small text-end">
+          Score
+        </div>
+
+      </div>
+
+      {/* ROWS */}
+      <div>
+
+        {players.map((player, index) => (
+
+          <motion.div
+            key={player.user_id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.04 }}
+            className={`row mx-0 align-items-center py-3 ${player.user_id === currentUserId
+                ? 'rounded-4'
+                : ''
+              }`}
+            style={{
+              background:
+                player.user_id === currentUserId
+                  ? 'rgba(255,77,61,0.08)'
+                  : 'transparent',
+
+              borderBottom: '1px solid rgba(0,0,0,0.05)',
+              minHeight: '72px',
+            }}
+          >
+
+            {/* RANK */}
+            <div
+              className="col-2 fw-bold"
+              style={{
+                fontSize: "1.2rem",
+                color: index === 0 ? "#ff4d3d" : "#2b2b2b",
+              }}
             >
-              <td className="px-4 py-4 align-middle fw-bold fs-5">#{index + 1}</td>
-              <td className="px-4 py-4 align-middle">
-                <div className="fw-bold">{player.name}</div>
-                <div className={`small text-uppercase fw-semibold opacity-50`}>{player.company}</div>
-              </td>
-              <td className="px-4 py-4 align-middle text-end fw-black fs-4">{player.total_score}</td>
-            </motion.tr>
-          ))}
-        </tbody>
-      </table>
+              #{index + 1}
+            </div>
+
+            {/* PLAYER */}
+            <div className="col-7 overflow-hidden">
+
+              <div
+                className="fw-bold text-truncate"
+                style={{
+                  fontSize: "1rem",
+                  color: darkMode ? "#fff" : "#2b2b2b",
+                }}
+              >
+                {player.name}
+              </div>
+
+              <div
+                className="text-uppercase text-truncate"
+                style={{
+                  fontSize: "0.72rem",
+                  letterSpacing: "1px",
+                  color: "#8a8a8a",
+                  fontWeight: "600",
+                }}
+              >
+                {player.company}
+              </div>
+
+            </div>
+
+            {/* SCORE */}
+            <div
+              className="col-3 text-end fw-bold"
+              style={{
+                fontSize: "1.8rem",
+                color: "#ff4d3d",
+                letterSpacing: "-1px",
+              }}
+            >
+              {player.total_score}
+            </div>
+
+          </motion.div>
+
+        ))}
+
+      </div>
+
     </div>
   )
 }
