@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase, callFunction } from '../lib/supabase'
 import { toast } from 'react-hot-toast'
-import KyndrylLogo from '../assets/Kyndryl.png'
+import KyndrylLogo from '../assets/kyndryl.png'
 import QRCodeModule from 'react-qr-code'
 const QRCode = QRCodeModule.default || QRCodeModule
 import Leaderboard from '../components/Leaderboard'

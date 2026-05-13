@@ -5,7 +5,7 @@ import { Html5Qrcode } from 'html5-qrcode'
 import { createWorker } from 'tesseract.js'
 import { supabase, callFunction } from '../lib/supabase'
 import { toast } from 'react-hot-toast'
-import KyndrylLogo from '../assets/Kyndryl.png'
+import KyndrylLogo from '../assets/kyndryl.png'
 import { Camera, RefreshCw, UserPlus, Zap, ScanText } from 'lucide-react'
 
 export default function LandingPage() {
