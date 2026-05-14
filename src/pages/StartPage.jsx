@@ -14,6 +14,7 @@ export default function StartPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [loading, setLoading] = useState(false)
+  const [dataLoaded, setDataLoaded] = useState(false)
   const [eventData, setEventData] = useState(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -34,9 +35,11 @@ export default function StartPage() {
       }))
     }
   }, [location.state])
+
   useEffect(() => {
     async function fetchData() {
       try {
+        setLoading(true)
         // Fetch Event Data
         const { data: eData, error: eError } = await supabase
           .from('events')
@@ -46,18 +49,25 @@ export default function StartPage() {
           .single()
 
         if (eError || !eData) {
-          toast.error('Event not found or inactive')
-          return
+          console.error('Event error:', eError)
+          setEventData(null)
+        } else {
+          setEventData(eData)
+          // Fetch Leaderboard Data
+          try {
+            const lbData = await callFunction('get-leaderboard', {
+              eventCode: eventId
+            })
+            setTop10(lbData.top10 || [])
+          } catch (lbErr) {
+            console.error('Leaderboard fetch error:', lbErr)
+          }
         }
-        setEventData(eData)
-
-        // Fetch Leaderboard Data
-        const lbData = await callFunction('get-leaderboard', {
-          eventCode: eventId
-        })
-        setTop10(lbData.top10 || [])
       } catch (err) {
         console.error('Fetch error:', err)
+      } finally {
+        setLoading(false)
+        setDataLoaded(true)
       }
     }
 
@@ -66,6 +76,12 @@ export default function StartPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (!formData.name || !formData.company) {
+      toast.error('Name and Company are required')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -87,12 +103,23 @@ export default function StartPage() {
     }
   }
 
-  if (!eventData && !loading) {
+  if (loading && !dataLoaded) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="d-flex align-items-center justify-content-center min-vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (dataLoaded && !eventData) {
+    return (
+      <div className="d-flex align-items-center justify-content-center min-vh-100 p-4">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600">Event Not Found</h1>
-          <p className="mt-2 text-gray-600">The event code you provided is invalid or the event has ended.</p>
+          <h1 className="display-4 fw-bold text-danger">Event Not Found</h1>
+          <p className="mt-2 text-muted">The event code you provided is invalid or the event has ended.</p>
+          <button onClick={() => navigate('/')} className="btn btn-outline-dark mt-4 rounded-pill px-4">Go Back</button>
         </div>
       </div>
     )

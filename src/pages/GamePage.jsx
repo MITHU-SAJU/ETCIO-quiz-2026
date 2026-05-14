@@ -127,29 +127,32 @@ export default function GamePage() {
   // Speak question when it changes
   useEffect(() => {
     if (question && !loading && !feedbackVisible) {
-      speak(`${question.title}. ${question.scenario}`)
+      // Small delay to ensure component is ready and user has interacted
+      const timeout = setTimeout(() => {
+        speak(`${question.title}. ${question.scenario}`);
+      }, 500);
+      return () => clearTimeout(timeout);
     }
-  }, [currentIndex, loading])
+  }, [currentIndex, loading, feedbackVisible]);
 
   // Speak feedback
   useEffect(() => {
-    if (feedbackVisible) {
+    if (feedbackVisible && selectedOption) {
       if (selectedOption === correctOption) {
-        speak("Correct!")
+        speak("Correct!");
       } else {
-        speak("Incorrect.")
+        speak("Incorrect. The correct answer was " + correctOption);
       }
     }
-  }, [feedbackVisible])
+  }, [feedbackVisible]);
 
   const question = questions[currentIndex]
 
   if (loading && !question) {
     return (
-      <div className="d-flex align-items-center justify-content-center min-vh-100 bg-white">
-        <div className="spinner-border text-dark" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+      <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 bg-white">
+        <div className="spinner-border text-danger mb-3" role="status" style={{ width: '3rem', height: '3rem' }}></div>
+        <div className="text-muted fw-bold text-uppercase tracking-widest small">Loading Challenge...</div>
       </div>
     )
   }
@@ -157,10 +160,11 @@ export default function GamePage() {
   if (error || !question) {
     return (
       <div className="container min-vh-100 d-flex flex-column align-items-center justify-content-center text-center p-4">
-        <div className="card card-enterprise p-5 shadow-sm border-0" style={{ maxWidth: '400px' }}>
-          <h2 className="h4 fw-bold text-danger mb-3">Error</h2>
-          <p className="text-muted mb-4 small">{error || 'Could not fetch game data.'}</p>
-          <button onClick={() => window.location.reload()} className="btn btn-enterprise w-100">Retry</button>
+        <div className="card card-enterprise p-5 shadow-sm border-0" style={{ maxWidth: '450px' }}>
+          <div className="text-danger mb-4" style={{ fontSize: '4rem' }}>⚠️</div>
+          <h2 className="h4 fw-bold text-dark mb-3">Something went wrong</h2>
+          <p className="text-muted mb-4">{error || 'The quiz session could not be loaded or has expired.'}</p>
+          <button onClick={() => navigate(-1)} className="btn btn-dark rounded-pill px-5 py-2 fw-bold">Go Back</button>
         </div>
       </div>
     )

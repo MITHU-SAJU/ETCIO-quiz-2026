@@ -35,21 +35,40 @@ serve(async (req) => {
       })
     }
 
-    // 2. Create user
-    const { data: user, error: userError } = await supabaseClient
-      .from('users')
-      .insert({
-        event_id: event.id,
-        name,
-        company,
-        designation,
-        email,
-        status: 'registered'
-      })
-      .select()
-      .single()
+    // 2. Check if user already exists (by email or name+company)
+    let user;
+    let query = supabaseClient.from('users').select('*').eq('event_id', event.id);
+    
+    const filters = [];
+    if (email) filters.push(`email.eq.${email}`);
+    if (name && company) filters.push(`and(name.eq.${name},company.eq.${company})`);
+    
+    const { data: existingUser, error: findError } = filters.length > 0 
+      ? await query.or(filters.join(',')).maybeSingle()
+      : { data: null, error: null };
 
-    if (userError) throw userError
+    if (existingUser) {
+      user = existingUser
+      console.log('Reusing existing user:', user.id)
+    } else {
+      // Create new user
+      const { data: newUser, error: userError } = await supabaseClient
+        .from('users')
+        .insert({
+          event_id: event.id,
+          name,
+          company,
+          designation,
+          email,
+          status: 'registered'
+        })
+        .select()
+        .single()
+
+      if (userError) throw userError
+      user = newUser
+      console.log('Created new user:', user.id)
+    }
 
     // 3. Fetch all active questions for the event
     const { data: allQuestions, error: qError } = await supabaseClient

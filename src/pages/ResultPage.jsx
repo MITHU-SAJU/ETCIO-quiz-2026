@@ -58,38 +58,57 @@ export default function ResultPage() {
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="card bg-dark text-white card-enterprise p-4 p-md-5 mb-4 mb-md-5 text-center shadow-lg border-0 rounded-5"
+              className="card bg-dark text-white card-enterprise p-4 p-md-5 mb-4 mb-md-5 text-center shadow-lg border-0 rounded-5 position-relative overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, #1a1a1a 0%, #000000 100%)",
+              }}
             >
-              <h1 className="h6 fw-bold mb-2 text-uppercase tracking-widest text-secondary">Challenge Completed</h1>
-              <div className="display-1 fw-black mb-4">{result.totalScore}</div>
+              {/* Decorative Glow */}
+              <div
+                className="position-absolute top-0 start-50 translate-middle-x"
+                style={{
+                  width: '200px',
+                  height: '2px',
+                  background: 'linear-gradient(90deg, transparent, #ff4d3d, transparent)',
+                  boxShadow: '0 0 20px #ff4d3d'
+                }}
+              />
 
-              <div className="row g-2 g-md-3 mb-4">
+              <h1 className="h6 fw-bold mb-4 text-uppercase tracking-widest text-secondary" style={{ letterSpacing: '4px' }}>Challenge Results</h1>
+
+              <div className="mb-4">
+                <div className="display-1 fw-black mb-0 text-white" style={{ letterSpacing: '-4px' }}>{result.totalScore}</div>
+                <div className="small fw-bold text-danger text-uppercase tracking-wider">Total Points Earned</div>
+              </div>
+
+              <div className="row g-3 mb-5">
                 <div className="col-6">
-                  <div className="bg-white bg-opacity-10 p-3 rounded-4">
-                    <div className="text-xs text-uppercase fw-bold mb-1 opacity-50" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>Rank</div>
-                    <div className="h2 fw-bold mb-0">#{result.rank}</div>
+                  <div className="bg-white bg-opacity-10 p-4 rounded-4 border border-white border-opacity-10">
+                    <div className="text-xs text-uppercase fw-bold mb-1 opacity-50" style={{ fontSize: '0.75rem', letterSpacing: '2px' }}>Current Rank</div>
+                    <div className="h1 fw-bold mb-0 text-white">#{result.rank}</div>
                   </div>
                 </div>
                 <div className="col-6">
-                  <div className="bg-white bg-opacity-10 p-3 rounded-4">
-                    <div className="text-xs text-uppercase fw-bold mb-1 opacity-50" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>Time</div>
-                    <div className="h2 fw-bold mb-0">{Math.round(result.totalResponseTime)}s</div>
+                  <div className="bg-white bg-opacity-10 p-4 rounded-4 border border-white border-opacity-10">
+                    <div className="text-xs text-uppercase fw-bold mb-1 opacity-50" style={{ fontSize: '0.75rem', letterSpacing: '2px' }}>Time Used</div>
+                    <div className="h1 fw-bold mb-0 text-white">{Math.round(result.totalResponseTime)}s</div>
                   </div>
                 </div>
               </div>
 
-              <div className="h5 fw-bold mb-1">
-                Well done, <span className="text-primary">{user.name}</span>!
+              <div className="h3 fw-bold mb-2">
+                Great job, <span style={{ color: '#ff4d3d' }}>{user.name}</span>!
               </div>
-              <div className="small opacity-50 mb-4">
+              <div className="small opacity-50 mb-5">
                 {user.designation} at {user.company}
               </div>
 
-              <div 
-                className="mt-2 py-2 px-3 rounded-pill d-inline-block"
-                style={{ background: 'rgba(255,255,255,0.1)', fontSize: '0.8rem' }}
+              <div
+                className="py-3 px-4 rounded-pill d-inline-flex align-items-center gap-3"
+                style={{ background: 'rgba(255,77,61,0.15)', border: '1px solid rgba(255,77,61,0.3)' }}
               >
-                Redirecting to start in <span className="fw-bold text-primary">{countdown}s</span>
+                <div className="spinner-border spinner-border-sm text-danger" role="status"></div>
+                <span className="small fw-bold text-uppercase tracking-wider">Redirecting in {countdown}s</span>
               </div>
             </motion.div>
             {/* Attractive Leaderboard Message */}
