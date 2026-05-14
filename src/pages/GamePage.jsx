@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { callFunction } from '../lib/supabase'
 import { toast } from 'react-hot-toast'
+import { Weight } from 'lucide-react'
 
 export default function GamePage() {
   const { sessionId } = useParams()
@@ -179,291 +180,397 @@ export default function GamePage() {
 
   return (
     <div
-      className="min-vh-100 d-flex align-items-center py-3 py-lg-4"
+      className="min-vh-100 d-flex flex-column position-relative overflow-hidden"
       style={{
         background: "#f4f4f4",
-        overflow: "hidden",
       }}
     >
-      <div className="container-fluid px-3 px-md-4 px-xl-5">
-        <div className="row justify-content-center">
-          <div className="col-12 col-xl-11">
 
-            {/* TOP HEADER */}
-            <div className="row align-items-center mb-4 mb-lg-5">
+      {/* BACKGROUND LINES */}
+      <div
+        className="position-absolute top-0 end-0 h-100 d-none d-lg-block"
+        style={{
+          width: "260px",
+          opacity: 0.08,
+          zIndex: 0,
+        }}
+      >
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              right: `${i * 22}px`,
+              top: "-10%",
+              width: "2px",
+              height: "130%",
+              background: "#ff4d3d",
+              transform: "skewX(-22deg)",
+            }}
+          />
+        ))}
+      </div>
 
-              {/* LEFT */}
-              <div className="col-lg-8 mb-4 mb-lg-0">
+      <div className="container-fluid px-3 px-lg-5 py-3 py-lg-4 position-relative" style={{ zIndex: 2 }}>
 
-                <div className="d-flex align-items-center gap-3 mb-3">
+        {/* HEADER */}
+        <div className="row align-items-center mb-4 mb-lg-5">
 
-                  <div
-                    className="px-3 py-2 rounded-pill"
-                    style={{
-                      background: "#2b2b2b",
-                      color: "#fff",
-                      fontSize: "0.82rem",
-                      fontWeight: "700",
-                      letterSpacing: "1.5px",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Round {currentIndex + 1} / {questions.length}
-                  </div>
+          {/* LEFT */}
+          <div className="col-lg-8 mb-4 mb-lg-0">
 
-                  <div
-                    style={{
-                      width: "60px",
-                      height: "1px",
-                      background: "#cfcfcf",
-                    }}
-                  />
-                </div>
-
-                <motion.h1
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-2 lh-1"
-                  style={{
-                    fontSize: "clamp(2.2rem, 4vw, 4.5rem)",
-                    fontWeight: "700",
-                    color: "#2d2d2d",
-                    letterSpacing: "-3px",
-                  }}
-                >
-                  {question.title}
-                </motion.h1>
-
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mb-0"
-                  style={{
-                    color: "#7c7c7c",
-                    fontSize: "clamp(0.9rem, 1.2vw, 1.15rem)",
-                    maxWidth: "900px",
-                    lineHeight: "1.6",
-                    fontWeight: "400",
-                  }}
-                >
-                  {question.scenario}
-                </motion.p>
-              </div>
-
-              {/* TIMER */}
-              <div className="col-lg-4 d-flex justify-content-center justify-content-lg-end">
-
-                <div
-                  className="position-relative d-flex align-items-center justify-content-center mt-3 mt-lg-0"
-                  style={{
-                    width: "clamp(100px, 15vw, 120px)",
-                    height: "clamp(100px, 15vw, 120px)",
-                  }}
-                >
-                  <svg width="120" height="120" viewBox="0 0 120 120">
-
-                    {/* Background Circle */}
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="50"
-                      fill="none"
-                      stroke="#dddddd"
-                      strokeWidth="6"
-                    />
-
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="50"
-                      fill="none"
-                      stroke={timeLeft <= 10 ? "#ff4d3d" : "#2b2b2b"}
-                      strokeWidth="6"
-                      strokeLinecap="round"
-                      strokeDasharray="314"
-                      strokeDashoffset={314 - (314 * timeLeft) / 60}
-                      transform="rotate(-90 60 60)"
-                      style={{
-                        transition: "stroke-dashoffset 1s linear",
-                      }}
-                    />
-                  </svg>
-
-                  <div className="position-absolute text-center">
-                    <div
-                      style={{
-                        fontSize: "2.2rem",
-                        fontWeight: "700",
-                        color: timeLeft <= 10 ? "#ff4d3d" : "#2b2b2b",
-                        lineHeight: 1,
-                      }}
-                    >
-                      {timeLeft}
-                    </div>
-
-                    <div
-                      style={{
-                        fontSize: "0.72rem",
-                        letterSpacing: "2px",
-                        color: "#8c8c8c",
-                        marginTop: "6px",
-                      }}
-                    >
-                      SECONDS
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            {/* PROGRESS */}
-            <div className="mb-4 mb-lg-5">
+            {/* TOP BADGE */}
+            <div className="d-flex align-items-center gap-3 mb-4">
 
               <div
+                className="px-4 py-2 rounded-pill"
                 style={{
-                  height: "6px",
-                  background: "#dfdfdf",
-                  overflow: "hidden",
-                  borderRadius: "20px",
-                }}
-              >
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{
-                    width: `${((currentIndex + 1) / questions.length) * 100}%`,
-                  }}
-                  transition={{
-                    duration: 0.4,
-                  }}
-                  style={{
-                    height: "100%",
-                    background: "#ff4d3d",
-                    borderRadius: "20px",
-                  }}
-                />
-              </div>
-
-            </div>
-
-            {/* MAIN CONTENT */}
-            <AnimatePresence mode="wait">
-
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                transition={{ duration: 0.35 }}
-                className="row g-3 g-md-4"
-              >
-
-                {question.options.map((option, index) => (
-                  <div className="col-12 col-md-6" key={option.option_key}>
-
-                    <motion.button
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.06 }}
-                      disabled={submitting || feedbackVisible}
-                      onClick={() => {
-                        setSelectedOption(option.option_key)
-                        handleSubmit(option.option_key)
-                      }}
-                      className={`w-100 border-0 text-start h-100 option-card shadow-sm ${getOptionClass(option.option_key)}`}
-                      style={{
-                        background:
-                          selectedOption === option.option_key && !feedbackVisible
-                            ? "#2b2b2b"
-                            : "#ffffff",
-
-                        color:
-                          selectedOption === option.option_key && !feedbackVisible
-                            ? "#ffffff"
-                            : "#2b2b2b",
-
-                        borderRadius: "24px",
-                        padding: "1.25rem 1.5rem",
-                        minHeight: "120px",
-                        height: "100%",
-                        transition: "all 0.25s ease",
-                      }}
-                    >
-
-                      {/* OPTION TOP */}
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-
-                        <div
-                          className="d-flex align-items-center justify-content-center rounded-circle"
-                          style={{
-                            width: "44px",
-                            height: "44px",
-                            background:
-                              selectedOption === option.option_key && !feedbackVisible
-                                ? "#ff4d3d"
-                                : "#f3f3f3",
-
-                            color:
-                              selectedOption === option.option_key && !feedbackVisible
-                                ? "#fff"
-                                : "#2b2b2b",
-
-                            fontWeight: "700",
-                            fontSize: "0.9rem",
-                            flexShrink: 0,
-                          }}
-                        >
-                          {option.option_key}
-                        </div>
-
-                        {feedbackVisible && option.option_key === correctOption && (
-                          <div className="text-white small fw-bold">CORRECT</div>
-                        )}
-                        {feedbackVisible && option.option_key === selectedOption && option.option_key !== correctOption && (
-                          <div className="text-white small fw-bold">WRONG</div>
-                        )}
-                      </div>
-
-                      {/* TEXT */}
-                      <div
-                        style={{
-                          fontSize: "1rem",
-                          lineHeight: "1.5",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {option.option_text}
-                      </div>
-
-                    </motion.button>
-
-                  </div>
-                ))}
-
-              </motion.div>
-
-            </AnimatePresence>
-
-            {/* FOOTER */}
-            <div className="mt-5 pt-2 text-center">
-
-              <div
-                style={{
-                  fontSize: "0.82rem",
+                  background: "#2b2b2b",
+                  color: "#fff",
+                  fontSize: "0.78rem",
+                  fontWeight: "700",
                   letterSpacing: "2px",
                   textTransform: "uppercase",
-                  color: "#8c8c8c",
-                  fontWeight: "600",
                 }}
               >
-                Think Fast • Decide Smart • Lead Boldly
+                Round {currentIndex + 1} / {questions.length}
+              </div>
+
+              <div
+                style={{
+                  width: "70px",
+                  height: "2px",
+                  background: "#ff4d3d",
+                }}
+              />
+            </div>
+
+            {/* TITLE */}
+            <motion.h2
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-3"
+              style={{
+                fontSize: "clamp(2.5rem, 7vw, 6rem)",
+                color: "rgb(255, 77, 61)",
+                letterSpacing: "-2px",
+                fontWeight: "300"
+              }}>
+              {question.title}
+            </motion.h2>
+
+            {/* DESCRIPTION */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mb-0"
+              style={{
+                color: "#6f6f6f",
+                fontSize: "clamp(1rem, 1.2vw, 1.15rem)",
+                lineHeight: "1.8",
+                maxWidth: "900px",
+                fontWeight: "400",
+              }}
+            >
+              {question.scenario}
+            </motion.p>
+
+          </div>
+
+          {/* TIMER */}
+          <div className="col-lg-4 d-flex justify-content-center justify-content-lg-end">
+
+            <div
+              className="position-relative d-flex align-items-center justify-content-center"
+              style={{
+                width: "170px",
+                height: "170px",
+              }}
+            >
+
+              {/* SVG TIMER */}
+              <svg width="170" height="170" viewBox="0 0 170 170">
+
+                {/* OUTER LIGHT RING */}
+                <circle
+                  cx="85"
+                  cy="85"
+                  r="72"
+                  fill="none"
+                  stroke="rgba(255,77,61,0.12)"
+                  strokeWidth="12"
+                />
+
+                {/* BACKGROUND TRACK */}
+                <circle
+                  cx="85"
+                  cy="85"
+                  r="68"
+                  fill="none"
+                  stroke="rgba(255,77,61,0.15)"
+                  strokeWidth="8"
+                />
+
+                {/* ACTIVE PROGRESS */}
+                <circle
+                  cx="85"
+                  cy="85"
+                  r="68"
+                  fill="none"
+                  stroke="#ff4d3d"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray="427"
+                  strokeDashoffset={427 - (427 * timeLeft) / 60}
+                  transform="rotate(-90 85 85)"
+                  style={{
+                    transition: "stroke-dashoffset 1s linear",
+                    filter: "drop-shadow(0 0 12px rgba(255,77,61,0.45))",
+                  }}
+                />
+
+              </svg>
+
+              {/* CENTER CONTENT */}
+              <div
+                className="position-absolute d-flex flex-column align-items-center justify-content-center rounded-circle"
+                style={{
+                  width: "118px",
+                  height: "118px",
+                  background: "#ffffff",
+                  border: "2px solid rgba(255,77,61,0.12)",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+                }}
+              >
+
+                {/* TIME */}
+                <div
+                  style={{
+                    fontSize: "3.2rem",
+                    fontWeight: "700",
+                    lineHeight: 1,
+                    letterSpacing: "-3px",
+                    color: "#ff4d3d",
+                  }}
+                >
+                  {timeLeft}
+                </div>
+
+                {/* LABEL */}
+                <div
+                  style={{
+                    fontSize: "0.7rem",
+                    letterSpacing: "3px",
+                    color: "#8c8c8c",
+                    marginTop: "8px",
+                    fontWeight: "700",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Seconds
+                </div>
+
               </div>
 
             </div>
 
           </div>
         </div>
+
+        {/* PROGRESS BAR */}
+        <div className="mb-4 mb-lg-5">
+
+          <div
+            style={{
+              height: "7px",
+              background: "#d9d9d9",
+              borderRadius: "20px",
+              overflow: "hidden",
+            }}
+          >
+
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{
+                width: `${((currentIndex + 1) / questions.length) * 100}%`,
+              }}
+              transition={{
+                duration: 0.4,
+              }}
+              style={{
+                height: "100%",
+                background: "#ff4d3d",
+                borderRadius: "20px",
+              }}
+            />
+
+          </div>
+
+        </div>
+
+        {/* OPTIONS */}
+        <AnimatePresence mode="wait">
+
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -25 }}
+            transition={{ duration: 0.3 }}
+            className="row g-3 g-lg-4"
+          >
+
+            {question.options.map((option, index) => (
+              <div className="col-12 col-md-6" key={option.option_key}>
+
+                <motion.button
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.06 }}
+                  disabled={submitting || feedbackVisible}
+                  onClick={() => {
+                    setSelectedOption(option.option_key)
+                    handleSubmit(option.option_key)
+                  }}
+                  className={`w-100 border-0 text-start position-relative overflow-hidden ${getOptionClass(option.option_key)}`}
+                  style={{
+                    background:
+                      selectedOption === option.option_key && !feedbackVisible
+                        ? "#2b2b2b"
+                        : "#ffffff",
+
+                    color:
+                      selectedOption === option.option_key && !feedbackVisible
+                        ? "#ffffff"
+                        : "#2b2b2b",
+
+                    borderRadius: "28px",
+                    padding: "1.8rem",
+                    minHeight: "180px",
+                    transition: "all 0.25s ease",
+                    boxShadow: "0 10px 35px rgba(0,0,0,0.05)",
+                    border:
+                      selectedOption === option.option_key
+                        ? "2px solid #ff4d3d"
+                        : "2px solid transparent",
+                  }}
+                >
+
+                  {/* TOP */}
+                  <div className="d-flex align-items-center justify-content-between mb-4">
+
+                    {/* OPTION KEY */}
+                    <div
+                      className="rounded-circle d-flex align-items-center justify-content-center"
+                      style={{
+                        width: "54px",
+                        height: "54px",
+                        background:
+                          selectedOption === option.option_key && !feedbackVisible
+                            ? "#ff4d3d"
+                            : "#f4f4f4",
+
+                        color:
+                          selectedOption === option.option_key && !feedbackVisible
+                            ? "#fff"
+                            : "#2b2b2b",
+
+                        fontWeight: "700",
+                        fontSize: "1rem",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {option.option_key}
+                    </div>
+
+                    {/* STATUS */}
+                    {feedbackVisible &&
+                      option.option_key === correctOption && (
+                        <div
+                          className="px-3 py-2 rounded-pill"
+                          style={{
+                            background: "#28a745",
+                            color: "#fff",
+                            fontSize: "0.7rem",
+                            fontWeight: "700",
+                            letterSpacing: "1px",
+                          }}
+                        >
+                          CORRECT
+                        </div>
+                      )}
+
+                    {feedbackVisible &&
+                      option.option_key === selectedOption &&
+                      option.option_key !== correctOption && (
+                        <div
+                          className="px-3 py-2 rounded-pill"
+                          style={{
+                            background: "#ff4d3d",
+                            color: "#fff",
+                            fontSize: "0.7rem",
+                            fontWeight: "700",
+                            letterSpacing: "1px",
+                          }}
+                        >
+                          WRONG
+                        </div>
+                      )}
+
+                  </div>
+
+                  {/* OPTION TEXT */}
+                  <div
+                    style={{
+                      fontSize: "1.08rem",
+                      lineHeight: "1.8",
+                      fontWeight: "500",
+                      letterSpacing: "-0.2px",
+                    }}
+                  >
+                    {option.option_text}
+                  </div>
+
+                  {/* HOVER BAR */}
+                  <div
+                    className="position-absolute bottom-0 start-0"
+                    style={{
+                      width: "100%",
+                      height: "5px",
+                      background:
+                        selectedOption === option.option_key
+                          ? "#ff4d3d"
+                          : "#f1f1f1",
+                    }}
+                  />
+
+                </motion.button>
+
+              </div>
+            ))}
+
+          </motion.div>
+
+        </AnimatePresence>
+
+        {/* FOOTER */}
+        <div className="text-center mt-5 pt-3">
+
+          <div
+            style={{
+              fontSize: "0.8rem",
+              letterSpacing: "3px",
+              textTransform: "uppercase",
+              color: "#9a9a9a",
+              fontWeight: "700",
+            }}
+          >
+            Think Fast • Decide Smart • Lead Boldly
+          </div>
+
+        </div>
+
       </div>
-    </div>
+    </div >
   )
 }
