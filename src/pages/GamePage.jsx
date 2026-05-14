@@ -3,7 +3,6 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { callFunction } from '../lib/supabase'
 import { toast } from 'react-hot-toast'
-import { Weight } from 'lucide-react'
 
 export default function GamePage() {
   const { sessionId } = useParams()
@@ -24,7 +23,7 @@ export default function GamePage() {
 
   const speak = (text) => {
     if (!synthRef.current) return
-    synthRef.current.cancel() // Stop any previous speech
+    synthRef.current.cancel() 
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.rate = 1.0
     utterance.pitch = 1.0
@@ -40,7 +39,6 @@ export default function GamePage() {
 
     setLoading(true)
     try {
-      // Fallback: Fetch all questions if not passed in state
       const data = await callFunction('get-all-session-questions', { sessionId })
       if (data.completed) {
         navigate(`/result/${sessionId}`)
@@ -101,7 +99,6 @@ export default function GamePage() {
         if (result.redirectToResult) {
           navigate(`/result/${sessionId}`)
         } else {
-          // Instant local transition
           setCurrentIndex(prev => prev + 1)
           setFeedbackVisible(false)
           setCorrectOption(null)
@@ -125,18 +122,17 @@ export default function GamePage() {
     }
   }, [sessionId])
 
-  // Speak question when it changes
+  const question = questions[currentIndex]
+
   useEffect(() => {
     if (question && !loading && !feedbackVisible) {
-      // Small delay to ensure component is ready and user has interacted
       const timeout = setTimeout(() => {
         speak(`${question.title}. ${question.scenario}`);
       }, 500);
       return () => clearTimeout(timeout);
     }
-  }, [currentIndex, loading, feedbackVisible]);
+  }, [currentIndex, loading, feedbackVisible, question]);
 
-  // Speak feedback
   useEffect(() => {
     if (feedbackVisible && selectedOption) {
       if (selectedOption === correctOption) {
@@ -145,9 +141,7 @@ export default function GamePage() {
         speak("Incorrect. The correct answer was " + correctOption);
       }
     }
-  }, [feedbackVisible]);
-
-  const question = questions[currentIndex]
+  }, [feedbackVisible, selectedOption, correctOption]);
 
   if (loading && !question) {
     return (
@@ -181,396 +175,108 @@ export default function GamePage() {
   return (
     <div
       className="min-vh-100 d-flex flex-column position-relative overflow-hidden"
-      style={{
-        background: "#f4f4f4",
-      }}
+      style={{ background: "#f4f4f4" }}
     >
-
-      {/* BACKGROUND LINES */}
+      {/* BACKGROUND DECORATION */}
       <div
-        className="position-absolute top-0 end-0 h-100 d-none d-lg-block"
-        style={{
-          width: "260px",
-          opacity: 0.08,
-          zIndex: 0,
-        }}
+        className="position-absolute top-0 end-0 h-100 d-none d-lg-block opacity-10"
+        style={{ width: "300px", zIndex: 0 }}
       >
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              right: `${i * 22}px`,
-              top: "-10%",
-              width: "2px",
-              height: "130%",
-              background: "#ff4d3d",
-              transform: "skewX(-22deg)",
-            }}
-          />
+        {[...Array(15)].map((_, i) => (
+          <div key={i} style={{ position: "absolute", right: `${i * 25}px`, top: "-10%", width: "2px", height: "130%", background: "#ff4d3d", transform: "skewX(-22deg)" }} />
         ))}
       </div>
 
-      <div className="container-fluid px-3 px-lg-5 py-3 py-lg-4 position-relative" style={{ zIndex: 2 }}>
-
-        {/* HEADER */}
-        <div className="row align-items-center mb-4 mb-lg-5">
-
-          {/* LEFT */}
-          <div className="col-lg-8 mb-4 mb-lg-0">
-
-            {/* TOP BADGE */}
-            <div className="d-flex align-items-center gap-3 mb-4">
-
-              <div
-                className="px-4 py-2 rounded-pill"
-                style={{
-                  background: "#2b2b2b",
-                  color: "#fff",
-                  fontSize: "0.78rem",
-                  fontWeight: "700",
-                  letterSpacing: "2px",
-                  textTransform: "uppercase",
-                }}
-              >
-                Round {currentIndex + 1} / {questions.length}
+      <div className="container py-4 py-lg-5 d-flex flex-column justify-content-between min-vh-100 position-relative" style={{ zIndex: 2, maxWidth: '1400px' }}>
+        
+        {/* TOP ROW: Title & Timer */}
+        <div>
+          <div className="row align-items-center mb-4 mb-lg-5">
+            <div className="col-lg-8">
+              <div className="d-flex align-items-center gap-3 mb-4">
+                <div className="px-4 py-2 rounded-pill bg-dark text-white fw-bold text-uppercase tracking-widest" style={{ fontSize: '0.75rem' }}>
+                  Round {currentIndex + 1} / {questions.length}
+                </div>
+                <div style={{ width: "60px", height: "2px", background: "#ff4d3d" }} />
               </div>
 
-              <div
-                style={{
-                  width: "70px",
-                  height: "2px",
-                  background: "#ff4d3d",
-                }}
-              />
+              <motion.h2
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-3"
+                style={{ fontSize: "clamp(2.5rem, 5vw, 4.5rem)", color: "#ff4d3d", letterSpacing: "-2px", fontWeight: "300", lineHeight: 1.1 }}
+              >
+                {question.title}
+              </motion.h2>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mb-0 text-secondary"
+                style={{ fontSize: "clamp(1rem, 1.1vw, 1.2rem)", lineHeight: "1.7", maxWidth: "850px" }}
+              >
+                {question.scenario}
+              </motion.p>
             </div>
 
-            {/* TITLE */}
-            <motion.h2
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-3"
-              style={{
-                fontSize: "clamp(2.5rem, 7vw, 6rem)",
-                color: "rgb(255, 77, 61)",
-                letterSpacing: "-2px",
-                fontWeight: "300"
-              }}>
-              {question.title}
-            </motion.h2>
-
-            {/* DESCRIPTION */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mb-0"
-              style={{
-                color: "#6f6f6f",
-                fontSize: "clamp(1rem, 1.2vw, 1.15rem)",
-                lineHeight: "1.8",
-                maxWidth: "900px",
-                fontWeight: "400",
-              }}
-            >
-              {question.scenario}
-            </motion.p>
-
+            <div className="col-lg-4 d-flex justify-content-center justify-content-lg-end mt-4 mt-lg-0">
+              <div className="position-relative d-flex align-items-center justify-content-center shadow-lg rounded-circle bg-white" style={{ width: "160px", height: "160px" }}>
+                <svg width="160" height="160" viewBox="0 0 160 160" className="position-absolute">
+                  <circle cx="80" cy="80" r="72" fill="none" stroke="#eee" strokeWidth="6" />
+                  <circle cx="80" cy="80" r="72" fill="none" stroke="#ff4d3d" strokeWidth="6" strokeLinecap="round" strokeDasharray="452" strokeDashoffset={452 - (452 * timeLeft) / 60} transform="rotate(-90 80 80)" style={{ transition: "stroke-dashoffset 1s linear" }} />
+                </svg>
+                <div className="text-center">
+                  <div style={{ fontSize: "3rem", fontWeight: "800", color: "#ff4d3d", lineHeight: 1 }}>{timeLeft}</div>
+                  <div className="text-uppercase tracking-widest text-muted mt-1" style={{ fontSize: "0.6rem", fontWeight: "700" }}>Secs</div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* TIMER */}
-          <div className="col-lg-4 d-flex justify-content-center justify-content-lg-end">
-
-            <div
-              className="position-relative d-flex align-items-center justify-content-center"
-              style={{
-                width: "170px",
-                height: "170px",
-              }}
-            >
-
-              {/* SVG TIMER */}
-              <svg width="170" height="170" viewBox="0 0 170 170">
-
-                {/* OUTER LIGHT RING */}
-                <circle
-                  cx="85"
-                  cy="85"
-                  r="72"
-                  fill="none"
-                  stroke="rgba(255,77,61,0.12)"
-                  strokeWidth="12"
-                />
-
-                {/* BACKGROUND TRACK */}
-                <circle
-                  cx="85"
-                  cy="85"
-                  r="68"
-                  fill="none"
-                  stroke="rgba(255,77,61,0.15)"
-                  strokeWidth="8"
-                />
-
-                {/* ACTIVE PROGRESS */}
-                <circle
-                  cx="85"
-                  cy="85"
-                  r="68"
-                  fill="none"
-                  stroke="#ff4d3d"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeDasharray="427"
-                  strokeDashoffset={427 - (427 * timeLeft) / 60}
-                  transform="rotate(-90 85 85)"
-                  style={{
-                    transition: "stroke-dashoffset 1s linear",
-                    filter: "drop-shadow(0 0 12px rgba(255,77,61,0.45))",
-                  }}
-                />
-
-              </svg>
-
-              {/* CENTER CONTENT */}
-              <div
-                className="position-absolute d-flex flex-column align-items-center justify-content-center rounded-circle"
-                style={{
-                  width: "118px",
-                  height: "118px",
-                  background: "#ffffff",
-                  border: "2px solid rgba(255,77,61,0.12)",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-                }}
-              >
-
-                {/* TIME */}
-                <div
-                  style={{
-                    fontSize: "3.2rem",
-                    fontWeight: "700",
-                    lineHeight: 1,
-                    letterSpacing: "-3px",
-                    color: "#ff4d3d",
-                  }}
-                >
-                  {timeLeft}
-                </div>
-
-                {/* LABEL */}
-                <div
-                  style={{
-                    fontSize: "0.7rem",
-                    letterSpacing: "3px",
-                    color: "#8c8c8c",
-                    marginTop: "8px",
-                    fontWeight: "700",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Seconds
-                </div>
-
-              </div>
-
-            </div>
-
+          <div className="progress mb-5" style={{ height: '6px', borderRadius: '10px', background: '#e0e0e0' }}>
+            <motion.div initial={{ width: 0 }} animate={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }} className="progress-bar bg-danger" style={{ borderRadius: '10px' }} />
           </div>
         </div>
 
-        {/* PROGRESS BAR */}
-        <div className="mb-4 mb-lg-5">
-
-          <div
-            style={{
-              height: "7px",
-              background: "#d9d9d9",
-              borderRadius: "20px",
-              overflow: "hidden",
-            }}
-          >
-
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{
-                width: `${((currentIndex + 1) / questions.length) * 100}%`,
-              }}
-              transition={{
-                duration: 0.4,
-              }}
-              style={{
-                height: "100%",
-                background: "#ff4d3d",
-                borderRadius: "20px",
-              }}
-            />
-
-          </div>
-
-        </div>
-
-        {/* OPTIONS */}
-        <AnimatePresence mode="wait">
-
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -25 }}
-            transition={{ duration: 0.3 }}
-            className="row g-3 g-lg-4"
-          >
-
-            {question.options.map((option, index) => (
-              <div className="col-12 col-md-6" key={option.option_key}>
-
-                <motion.button
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.06 }}
-                  disabled={submitting || feedbackVisible}
-                  onClick={() => {
-                    setSelectedOption(option.option_key)
-                    handleSubmit(option.option_key)
-                  }}
-                  className={`w-100 border-0 text-start position-relative overflow-hidden ${getOptionClass(option.option_key)}`}
-                  style={{
-                    background:
-                      selectedOption === option.option_key && !feedbackVisible
-                        ? "#2b2b2b"
-                        : "#ffffff",
-
-                    color:
-                      selectedOption === option.option_key && !feedbackVisible
-                        ? "#ffffff"
-                        : "#2b2b2b",
-
-                    borderRadius: "28px",
-                    padding: "1.8rem",
-                    minHeight: "180px",
-                    transition: "all 0.25s ease",
-                    boxShadow: "0 10px 35px rgba(0,0,0,0.05)",
-                    border:
-                      selectedOption === option.option_key
-                        ? "2px solid #ff4d3d"
-                        : "2px solid transparent",
-                  }}
-                >
-
-                  {/* TOP */}
-                  <div className="d-flex align-items-center justify-content-between mb-4">
-
-                    {/* OPTION KEY */}
-                    <div
-                      className="rounded-circle d-flex align-items-center justify-content-center"
-                      style={{
-                        width: "54px",
-                        height: "54px",
-                        background:
-                          selectedOption === option.option_key && !feedbackVisible
-                            ? "#ff4d3d"
-                            : "#f4f4f4",
-
-                        color:
-                          selectedOption === option.option_key && !feedbackVisible
-                            ? "#fff"
-                            : "#2b2b2b",
-
-                        fontWeight: "700",
-                        fontSize: "1rem",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {option.option_key}
-                    </div>
-
-                    {/* STATUS */}
-                    {feedbackVisible &&
-                      option.option_key === correctOption && (
-                        <div
-                          className="px-3 py-2 rounded-pill"
-                          style={{
-                            background: "#28a745",
-                            color: "#fff",
-                            fontSize: "0.7rem",
-                            fontWeight: "700",
-                            letterSpacing: "1px",
-                          }}
-                        >
-                          CORRECT
-                        </div>
-                      )}
-
-                    {feedbackVisible &&
-                      option.option_key === selectedOption &&
-                      option.option_key !== correctOption && (
-                        <div
-                          className="px-3 py-2 rounded-pill"
-                          style={{
-                            background: "#ff4d3d",
-                            color: "#fff",
-                            fontSize: "0.7rem",
-                            fontWeight: "700",
-                            letterSpacing: "1px",
-                          }}
-                        >
-                          WRONG
-                        </div>
-                      )}
-
-                  </div>
-
-                  {/* OPTION TEXT */}
-                  <div
+        {/* MIDDLE ROW: Options */}
+        <div className="row g-4 mb-auto">
+          <AnimatePresence mode="wait">
+            <motion.div key={currentIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="row g-3 g-lg-4 m-0 p-0">
+              {question.options.map((option, idx) => (
+                <div className="col-12 col-md-6" key={option.id || idx}>
+                  <motion.button
+                    whileHover={{ y: -5, scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={submitting || feedbackVisible}
+                    onClick={() => { setSelectedOption(option.option_key); handleSubmit(option.option_key); }}
+                    className={`w-100 h-100 text-start border-0 p-4 rounded-4 shadow-sm transition-all position-relative overflow-hidden ${getOptionClass(option.option_key)}`}
                     style={{
-                      fontSize: "1.08rem",
-                      lineHeight: "1.8",
-                      fontWeight: "500",
-                      letterSpacing: "-0.2px",
+                      minHeight: '140px',
+                      background: selectedOption === option.option_key ? '#2b2b2b' : '#fff',
+                      color: selectedOption === option.option_key ? '#fff' : '#2b2b2b',
+                      border: selectedOption === option.option_key ? '2px solid #ff4d3d' : '2px solid transparent'
                     }}
                   >
-                    {option.option_text}
-                  </div>
-
-                  {/* HOVER BAR */}
-                  <div
-                    className="position-absolute bottom-0 start-0"
-                    style={{
-                      width: "100%",
-                      height: "5px",
-                      background:
-                        selectedOption === option.option_key
-                          ? "#ff4d3d"
-                          : "#f1f1f1",
-                    }}
-                  />
-
-                </motion.button>
-
-              </div>
-            ))}
-
-          </motion.div>
-
-        </AnimatePresence>
-
-        {/* FOOTER */}
-        <div className="text-center mt-5 pt-3">
-
-          <div
-            style={{
-              fontSize: "0.8rem",
-              letterSpacing: "3px",
-              textTransform: "uppercase",
-              color: "#9a9a9a",
-              fontWeight: "700",
-            }}
-          >
-            Think Fast • Decide Smart • Lead Boldly
-          </div>
-
+                    <div className="d-flex justify-content-between align-items-start mb-3">
+                      <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px', background: selectedOption === option.option_key ? '#ff4d3d' : '#f0f0f0', color: selectedOption === option.option_key ? '#fff' : '#2b2b2b' }}>
+                        {option.option_key}
+                      </div>
+                      {feedbackVisible && option.option_key === correctOption && <span className="badge bg-success rounded-pill px-3 py-2">CORRECT</span>}
+                      {feedbackVisible && option.option_key === selectedOption && option.option_key !== correctOption && <span className="badge bg-danger rounded-pill px-3 py-2">WRONG</span>}
+                    </div>
+                    <div className="h5 mb-0 fw-500">{option.option_text}</div>
+                  </motion.button>
+                </div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
+        {/* BOTTOM ROW: Footer */}
+        <div className="text-center pt-4 opacity-50">
+          <div className="text-uppercase tracking-widest small fw-bold">Think Fast • Decide Smart • Lead Boldly</div>
+        </div>
       </div>
-    </div >
+    </div>
   )
 }

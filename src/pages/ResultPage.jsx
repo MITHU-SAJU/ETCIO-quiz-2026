@@ -48,10 +48,10 @@ export default function ResultPage() {
 
   if (loading) {
     return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center">
+      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-white">
         <div className="text-center">
-          <div className="spinner-border text-danger mb-3" role="status"></div>
-          <div className="h5 fw-bold">Loading Results...</div>
+          <div className="spinner-border text-danger mb-3" role="status" style={{ width: '3rem', height: '3rem' }}></div>
+          <div className="h5 fw-bold text-uppercase tracking-widest">Calculating Score...</div>
         </div>
       </div>
     );
@@ -71,11 +71,11 @@ export default function ResultPage() {
   const { user, result } = data;
 
   return (
-    <div className="result-page min-vh-100 position-relative overflow-hidden py-4 py-lg-5">
+    <div className="result-page min-vh-100 position-relative overflow-hidden d-flex align-items-center py-4 py-lg-5">
 
       {/* CONFETTI */}
       <div className="confetti-container">
-        {[...Array(80)].map((_, i) => (
+        {[...Array(60)].map((_, i) => (
           <div
             key={i}
             className="confetti"
@@ -92,7 +92,7 @@ export default function ResultPage() {
 
       {/* BACKGROUND LINES */}
       <div className="kyndryl-lines d-none d-xl-block">
-        {[...Array(12)].map((_, i) => (
+        {[...Array(15)].map((_, i) => (
           <div
             key={i}
             className="line"
@@ -103,92 +103,58 @@ export default function ResultPage() {
         ))}
       </div>
 
-      <div className="container-fluid px-3 px-lg-5 position-relative z-2">
+      <div className="container py-3 position-relative z-2" style={{ maxWidth: '1400px' }}>
 
-        <div className="row g-4 align-items-stretch">
+        <div className="row g-4 align-items-stretch justify-content-center">
 
-          {/* LEFT */}
-          <div className="col-12 col-xl-5">
+          {/* LEFT: Hurray & Score */}
+          <div className="col-12 col-lg-5 col-xl-5">
 
             <motion.div
-              initial={{ opacity: 0, x: -40 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="result-left-card h-100"
+              className="result-left-card h-100 d-flex flex-column justify-content-between"
             >
-
-              <div className="result-tag">
-                Challenge Completed
+              <div>
+                <div className="result-tag">Challenge Completed</div>
+                <motion.h1
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                  className="hurray-text"
+                >
+                  HURRAY!
+                </motion.h1>
+                <h2 className="result-title">You've Finished</h2>
               </div>
 
-              <motion.h1
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="hurray-text"
-              >
-                HURRAY!
-              </motion.h1>
-
-              <h2 className="result-title">
-                You Finished The Challenge
-              </h2>
-
-              <div className="user-block">
-                <div className="user-name">{user.name}</div>
-
-                <div className="user-info">
-                  {user.designation} • {user.company}
-                </div>
+              <div className="user-block my-4">
+                <div className="user-name h3 fw-bold mb-1">{user.name}</div>
+                <div className="user-info text-secondary">{user.designation} • {user.company}</div>
               </div>
 
-              {/* SCORE */}
-              <motion.div
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 120,
-                  delay: 0.3,
-                }}
-                className="score-circle mx-auto"
-              >
-
+              <div className="score-area text-center my-4">
                 <motion.div
-                  animate={{
-                    rotate: [0, 4, -4, 0],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 3,
-                  }}
-                  className="score-inner"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 100, delay: 0.2 }}
+                  className="score-circle mx-auto"
                 >
-
-                  <div className="score-value">
-                    {result.totalScore}
+                  <div className="score-inner">
+                    <div className="score-value">{result.totalScore}</div>
+                    <div className="score-label">POINTS</div>
                   </div>
-
-                  <div className="score-label">
-                    TOTAL SCORE
-                  </div>
-
                 </motion.div>
-
-              </motion.div>
-
-              {/* REDIRECT BADGE */}
-              <div className="mt-5 text-center">
+              </div>
+              
+              <div className="mt-4 text-center">
                 <div 
-                  className="py-2 px-4 rounded-pill d-inline-flex align-items-center gap-3"
-                  style={{ 
-                    background: 'rgba(255,77,61,0.08)', 
-                    border: '1px solid rgba(255,77,61,0.2)',
-                    backdropFilter: 'blur(5px)'
-                  }}
+                  className="py-2 px-4 rounded-pill d-inline-flex align-items-center gap-3 shadow-sm"
+                  style={{ background: '#fff', border: '1px solid rgba(255,77,61,0.2)' }}
                 >
-                  <div className="spinner-border spinner-border-sm text-danger" role="status" style={{ width: '1rem', height: '1rem' }}></div>
-                  <span className="small fw-bold text-uppercase tracking-wider" style={{ color: '#ff4d3d', fontSize: '0.7rem' }}>
+                  <div className="spinner-border spinner-border-sm text-danger" role="status"></div>
+                  <span className="small fw-bold text-uppercase tracking-wider text-danger" style={{ fontSize: '0.75rem' }}>
                     Next Player in {countdown}s
                   </span>
                 </div>
@@ -198,126 +164,45 @@ export default function ResultPage() {
 
           </div>
 
-          {/* RIGHT */}
-          <div className="col-12 col-xl-7">
+          {/* RIGHT: Performance Stats */}
+          <div className="col-12 col-lg-7 col-xl-6">
 
             <motion.div
-              initial={{ opacity: 0, x: 40 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{
-                duration: 0.5,
-                delay: 0.2,
-              }}
+              transition={{ duration: 0.5, delay: 0.2 }}
               className="result-right-card h-100 d-flex flex-column"
             >
-
-              {/* HEADER */}
-              <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
-
+              <div className="d-flex align-items-center justify-content-between mb-5">
                 <div>
-                  <div className="leaderboard-tag">
-                    PERFORMANCE ANALYTICS
+                  <div className="leaderboard-tag">ANALYTICS</div>
+                  <h2 className="leaderboard-title h1 fw-bold mb-0">Performance</h2>
+                </div>
+                <div className="trophy-box">🏆</div>
+              </div>
+
+              <div className="row g-4 mb-5">
+                <div className="col-12 col-sm-6">
+                  <div className="stat-card dark-card h-100">
+                    <div className="stat-label">Current Rank</div>
+                    <div className="stat-value">#{result.rank}</div>
+                    <div className="stat-sub">Across all leaders</div>
                   </div>
-
-                  <h2 className="leaderboard-title">
-                    Your Performance
-                  </h2>
                 </div>
-
-                <motion.div
-                  animate={{
-                    y: [0, -8, 0],
-                    rotate: [0, 8, -8, 0],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 2.5,
-                  }}
-                  className="trophy-box"
-                >
-                  🏆
-                </motion.div>
-
+                <div className="col-12 col-sm-6">
+                  <div className="stat-card h-100 border-2">
+                    <div className="stat-label text-secondary">Time Taken</div>
+                    <div className="stat-value text-danger">{Math.round(result.totalResponseTime)}s</div>
+                    <div className="stat-sub">Response speed</div>
+                  </div>
+                </div>
               </div>
 
-              {/* STATS */}
-              <div className="row g-4 mb-4">
-
-                <div className="col-12 col-md-6">
-
-                  <motion.div
-                    whileHover={{
-                      y: -6,
-                      scale: 1.02,
-                    }}
-                    className="stat-card dark-card"
-                  >
-
-                    <div className="stat-label">
-                      Current Rank
-                    </div>
-
-                    <div className="stat-value light">
-                      #{result.rank}
-                    </div>
-
-                    <div className="stat-sub">
-                      Among all participants
-                    </div>
-
-                  </motion.div>
-
-                </div>
-
-                <div className="col-12 col-md-6">
-
-                  <motion.div
-                    whileHover={{
-                      y: -6,
-                      scale: 1.02,
-                    }}
-                    className="stat-card"
-                  >
-
-                    <div className="stat-label">
-                      Time Used
-                    </div>
-
-                    <div className="stat-value orange">
-                      {Math.round(result.totalResponseTime)}s
-                    </div>
-
-                    <div className="stat-sub">
-                      Average response time
-                    </div>
-
-                  </motion.div>
-
-                </div>
-
+              <div className="leaderboard-message flex-grow-1 d-flex flex-column justify-content-center text-center p-4 rounded-4 bg-dark text-white position-relative overflow-hidden">
+                <div className="message-icon h1 mb-3">✨</div>
+                <h3 className="h4 fw-bold mb-3">Leadership Insight</h3>
+                <p className="opacity-75 mb-0">Your decisions demonstrate high-impact leadership. Check the live leaderboard to see how you compare with other CIOs.</p>
               </div>
-
-              {/* MESSAGE */}
-              <div className="leaderboard-message flex-grow-1 d-flex flex-column justify-content-center">
-
-                <div className="message-icon">
-                  ✨
-                </div>
-
-                <h3>
-                  Premium Leadership Experience
-                </h3>
-
-                <p>
-                  Your decisions shaped the outcome. Compare your score with
-                  other leaders and discover where you stand in the live
-                  rankings.
-                </p>
-
-              </div>
-
-
-
             </motion.div>
 
           </div>
@@ -327,485 +212,54 @@ export default function ResultPage() {
       </div>
 
       <style>{`
+      .result-page { background: #f8f9fa; }
+      .kyndryl-lines { position: absolute; inset: 0; opacity: 0.08; z-index: 0; }
+      .line { position: absolute; top: -10%; width: 2px; height: 130%; background: #ff4d3d; transform: skewX(-22deg); }
+      .confetti-container { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+      .confetti { position: absolute; top: -60px; background: linear-gradient(135deg, #ff4d3d, #ff8a5e); border-radius: 3px; animation: fall linear infinite; opacity: 0.9; }
+      @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
       
-      .result-page {
-        background: #f6f6f6;
+      .result-left-card, .result-right-card {
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 40px;
+        padding: 50px;
+        box-shadow: 0 25px 70px rgba(0,0,0,0.07);
+        border: 1px solid rgba(0,0,0,0.03);
       }
 
-      /* BACKGROUND LINES */
-      .kyndryl-lines {
-        position: absolute;
-        inset: 0;
-        opacity: 0.08;
-        z-index: 0;
-      }
+      .result-tag, .leaderboard-tag { font-size: 0.8rem; font-weight: 800; letter-spacing: 3px; color: #ff4d3d; margin-bottom: 15px; text-transform: uppercase; }
+      .hurray-text { font-size: clamp(3rem, 8vw, 6rem); font-weight: 900; letter-spacing: -3px; line-height: 0.9; color: #222; }
+      .result-title { font-size: 2rem; color: #666; font-weight: 300; letter-spacing: -1px; }
 
-      .line {
-        position: absolute;
-        top: -10%;
-        width: 2px;
-        height: 130%;
-        background: #ff4d3d;
-        transform: skewX(-22deg);
-      }
-
-      /* CONFETTI */
-      .confetti-container {
-        position: absolute;
-        inset: 0;
-        overflow: hidden;
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      .confetti {
-        position: absolute;
-        top: -60px;
-        background: linear-gradient(
-          135deg,
-          #ff4d3d,
-          #ff8a5e
-        );
-        border-radius: 3px;
-        animation: fall linear infinite;
-        opacity: 0.9;
-      }
-
-      @keyframes fall {
-        to {
-          transform: translateY(110vh) rotate(720deg);
-        }
-      }
-
-      /* LEFT CARD */
-      .result-left-card {
-        background: rgba(255,255,255,0.92);
-
-        backdrop-filter: blur(12px);
-
-        border-radius: 34px;
-
-        padding: 42px;
-
-        border: 1px solid rgba(255,77,61,0.08);
-
-        box-shadow:
-          0 20px 60px rgba(0,0,0,0.06),
-          0 6px 18px rgba(255,77,61,0.08);
-
-        animation: floatingCard 5s ease-in-out infinite;
-      }
-
-      @keyframes floatingCard {
-        0% {
-          transform: translateY(0px);
-        }
-
-        50% {
-          transform: translateY(-6px);
-        }
-
-        100% {
-          transform: translateY(0px);
-        }
-      }
-
-      .result-tag {
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-        color: #999;
-        margin-bottom: 18px;
-      }
-
-      .hurray-text {
-        font-size: clamp(2.5rem, 7vw, 6rem);
-
-        color: rgb(255, 77, 61);
-
-        letter-spacing: -2px;
-
-        font-weight: 300;
-
-        line-height: 0.9;
-
-        text-transform: uppercase;
-
-        background: linear-gradient(
-          135deg,
-          #ff4d3d 0%,
-          #ff6b57 45%,
-          #ff9d84 100%
-        );
-
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-
-        text-shadow:
-          0 10px 30px rgba(255,77,61,0.15);
-      }
-
-      .result-title {
-        font-size: clamp(1.8rem, 4vw, 3.2rem);
-
-        font-weight: 700;
-
-        color: #222;
-
-        letter-spacing: -2px;
-
-        line-height: 1.05;
-
-        margin-top: 10px;
-
-        margin-bottom: 35px;
-      }
-
-      .user-block {
-        text-align: center;
-        margin-bottom: 30px;
-      }
-
-      .user-name {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #222;
-      }
-
-      .user-info {
-        color: #777;
-        margin-top: 6px;
-      }
-
-      /* SCORE */
       .score-circle {
-        width: 250px;
-        height: 250px;
-
+        width: 240px;
+        height: 240px;
         border-radius: 50%;
-
-        background: linear-gradient(
-          135deg,
-          #ff4d3d 0%,
-          #ff6b57 45%,
-          #ff9d84 100%
-        );
-
+        background: linear-gradient(135deg, #ff4d3d 0%, #ff1a1a 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-
-        position: relative;
-
-        box-shadow:
-          0 25px 60px rgba(255,77,61,0.35),
-          inset 0 4px 12px rgba(255,255,255,0.2);
-      }
-
-      .score-circle::after {
-        content: '';
-
-        position: absolute;
-
-        inset: 12px;
-
-        border-radius: 50%;
-
-        border: 1px solid rgba(255,255,255,0.3);
-      }
-
-      .score-inner {
-        text-align: center;
         color: white;
+        box-shadow: 0 20px 50px rgba(255,77,61,0.3);
       }
+      .score-value { font-size: 6rem; font-weight: 900; line-height: 1; letter-spacing: -5px; }
+      .score-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 4px; }
 
-      .score-value {
-        font-size: 5rem;
-        font-weight: 900;
-        line-height: 1;
-        letter-spacing: -5px;
+      .dark-card { background: #222; color: white; border: none; padding: 35px; border-radius: 30px; }
+      .stat-card { padding: 35px; border-radius: 30px; border: 2px solid #eee; }
+      .stat-label { font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+      .stat-value { font-size: 4rem; font-weight: 900; line-height: 1; letter-spacing: -2px; }
+      .stat-sub { font-size: 0.9rem; opacity: 0.6; margin-top: 5px; }
+
+      .trophy-box { font-size: 3.5rem; background: #fff5f4; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 25px; border: 1px solid #ffebea; }
+
+      @media (max-width: 991px) {
+        .result-left-card, .result-right-card { padding: 35px; border-radius: 30px; }
+        .score-circle { width: 180px; height: 180px; }
+        .score-value { font-size: 4.5rem; }
       }
-
-      .score-label {
-        margin-top: 10px;
-
-        font-size: 0.82rem;
-
-        letter-spacing: 3px;
-
-        font-weight: 700;
-
-        text-transform: uppercase;
-      }
-
-      /* RIGHT CARD */
-      .result-right-card {
-        background: rgba(255,255,255,0.92);
-
-        backdrop-filter: blur(12px);
-
-        border-radius: 34px;
-
-        padding: 42px;
-
-        border: 1px solid rgba(255,77,61,0.08);
-
-        box-shadow:
-          0 20px 60px rgba(0,0,0,0.06),
-          0 6px 18px rgba(255,77,61,0.08);
-      }
-
-      .leaderboard-tag {
-        font-size: 0.78rem;
-
-        font-weight: 700;
-
-        letter-spacing: 3px;
-
-        text-transform: uppercase;
-
-        color: #999;
-      }
-
-      .leaderboard-title {
-        font-size: clamp(2rem, 5vw, 4rem);
-
-        font-weight: 800;
-
-        color: #222;
-
-        letter-spacing: -3px;
-
-        line-height: 1;
-      }
-
-      .trophy-box {
-        width: 90px;
-        height: 90px;
-
-        border-radius: 26px;
-
-        background: linear-gradient(
-          135deg,
-          #ff4d3d,
-          #ff8a5e
-        );
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        font-size: 3rem;
-
-        box-shadow:
-          0 15px 40px rgba(255,77,61,0.3);
-      }
-
-      /* STAT CARD */
-      .stat-card {
-        background: #fff;
-
-        border-radius: 28px;
-
-        padding: 30px;
-
-        border: 2px solid rgba(255,77,61,0.12);
-
-        transition: all 0.3s ease;
-      }
-
-      .dark-card {
-        background: linear-gradient(
-          145deg,
-          #ff4d3d 0%,
-          #ff6b57 45%,
-          #ff8b73 100%
-        );
-
-        border: none;
-
-        color: white;
-
-        position: relative;
-
-        overflow: hidden;
-
-        box-shadow:
-          0 20px 45px rgba(255,77,61,0.25);
-      }
-
-      .dark-card::before {
-        content: '';
-
-        position: absolute;
-
-        top: -40%;
-        right: -10%;
-
-        width: 220px;
-        height: 220px;
-
-        border-radius: 50%;
-
-        background: rgba(255,255,255,0.08);
-      }
-
-      .stat-label {
-        font-size: 0.78rem;
-
-        font-weight: 700;
-
-        letter-spacing: 2px;
-
-        text-transform: uppercase;
-
-        color: #888;
-
-        margin-bottom: 12px;
-      }
-
-      .dark-card .stat-label {
-        color: rgba(255,255,255,0.75);
-      }
-
-      .stat-value {
-        font-size: 3.8rem;
-
-        font-weight: 800;
-
-        letter-spacing: -3px;
-
-        line-height: 1;
-      }
-
-      .stat-value.orange {
-        color: #ff4d3d;
-      }
-
-      .stat-value.light {
-        color: white;
-      }
-
-      .stat-sub {
-        margin-top: 10px;
-
-
-        font-size: 0.92rem;
-
-        color: #888;
-      }
-
-      .dark-card .stat-sub {
-        color: rgba(255,255,255,0.7);
-      }
-
-      /* MESSAGE */
-      .leaderboard-message {
-        background: linear-gradient(
-          145deg,
-          #1e1e1e,
-          #292929
-        );
-
-        border-radius: 30px;
-
-        padding: 40px;
-
-        text-align: center;
-
-        color: white;
-
-        position: relative;
-
-        overflow: hidden;
-
-        border: 1px solid rgba(255,77,61,0.12);
-      }
-
-      .leaderboard-message::before {
-        content: '';
-
-        position: absolute;
-
-        width: 300px;
-        height: 300px;
-
-        border-radius: 50%;
-
-        background: rgba(255,255,255,0.05);
-
-        filter: blur(60px);
-
-        top: 50%;
-        left: 50%;
-
-        transform: translate(-50%, -50%);
-      }
-
-      .message-icon {
-        font-size: 3.5rem;
-        margin-bottom: 18px;
-      }
-
-      .leaderboard-message h3 {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 16px;
-      }
-
-      .leaderboard-message p {
-        color: rgba(255,255,255,0.78);
-        line-height: 1.85;
-        margin-bottom: 0;
-      }
-
-      /* RESPONSIVE */
-      @media (max-width: 992px) {
-
-        .result-left-card,
-        .result-right-card {
-          padding: 30px;
-          border-radius: 28px;
-        }
-
-        .score-circle {
-          width: 210px;
-          height: 210px;
-        }
-
-        .score-value {
-          font-size: 4rem;
-        }
-      }
-
-      @media (max-width: 576px) {
-
-        .result-left-card,
-        .result-right-card {
-          padding: 22px;
-        }
-
-        .score-circle {
-          width: 180px;
-          height: 180px;
-        }
-
-        .score-value {
-          font-size: 3.4rem;
-        }
-
-        .leaderboard-message {
-          padding: 28px;
-        }
-
-        .leaderboard-message h3 {
-          font-size: 1.5rem;
-        }
-      }
-
       `}</style>
-
     </div>
   );
 }

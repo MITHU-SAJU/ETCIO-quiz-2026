@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, RefreshCw, UserPlus } from "lucide-react";
+import { Camera, UserPlus } from "lucide-react";
 import { callFunction } from "../lib/supabase";
 import { toast } from "react-hot-toast";
 import KyndrylLogo from "../assets/kyndryl.png";
@@ -26,7 +26,6 @@ export default function LandingPage() {
       setCameraError("");
       setCameraReady(false);
 
-      // Stop old stream
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
@@ -44,7 +43,6 @@ export default function LandingPage() {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-
         await new Promise((resolve) => {
           videoRef.current.onloadedmetadata = async () => {
             try {
@@ -56,24 +54,13 @@ export default function LandingPage() {
           };
         });
       }
-
       setCameraReady(true);
     } catch (err) {
       console.error("CAMERA ERROR:", err);
-
-      if (err.name === "NotAllowedError") {
-        setCameraError("Camera permission denied");
-      } else if (err.name === "NotFoundError") {
-        setCameraError("No camera found");
-      } else {
-        setCameraError("Unable to access camera");
-      }
+      setCameraError(err.name === "NotAllowedError" ? "Camera permission denied" : "Unable to access camera");
     }
   }, []);
 
-  // =========================
-  // STOP CAMERA
-  // =========================
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -83,12 +70,8 @@ export default function LandingPage() {
 
   useEffect(() => {
     startCamera();
-
-    return () => {
-      stopCamera();
-    };
+    return () => stopCamera();
   }, [startCamera, stopCamera]);
-
 
   // =========================
   // CAPTURE IMAGE
@@ -98,39 +81,26 @@ export default function LandingPage() {
 
     try {
       setLoading(true);
-
       const video = videoRef.current;
       const canvas = canvasRef.current;
 
-      if (!video || !canvas) {
+      if (!video || !canvas || video.videoWidth === 0) {
         throw new Error("Camera not ready");
       }
 
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        throw new Error("Video not ready");
-      }
-
       const ctx = canvas.getContext("2d");
-
-      // Set canvas size (we use a slightly higher quality for Google Vision)
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-
-      // Draw image
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Convert image to base64
       const imageData = canvas.toDataURL("image/jpeg", 0.9);
 
       if (!eventId) {
-        throw new Error("Missing Event ID. Please ensure you are on the correct URL (e.g., /start/event-name)");
+        throw new Error("Missing Event ID.");
       }
 
       console.log("SENDING TO BACKEND:", { eventId, imageLength: imageData.length });
 
-      // =========================
-      // CALL BACKEND (Google Vision OCR)
-      // =========================
       const result = await callFunction("scan-id-card", {
         imageBase64: imageData,
         eventId,
@@ -142,12 +112,8 @@ export default function LandingPage() {
         throw new Error(result.error);
       }
 
-      // =========================
-      // USER FOUND
-      // =========================
       if (result?.userFound && result?.user) {
         toast.success(`Welcome ${result.user.name}`);
-
         const session = await callFunction("create-session", {
           eventCode: eventId,
           name: result.user.name,
@@ -156,34 +122,19 @@ export default function LandingPage() {
           email: result.user.email,
         });
 
-        console.log("SESSION:", session);
-
         if (session?.sessionId) {
           stopCamera();
-
           navigate(`/game/${session.sessionId}`, {
-            state: {
-              questions: session.questions || [],
-            },
+            state: { questions: session.questions || [] },
           });
-
           return;
         }
-
         throw new Error("Session creation failed");
       }
 
-      // =========================
-      // USER NOT FOUND
-      // =========================
       toast(result?.message || "User not found. Please register manually.");
-
       navigate(`/register/${eventId}`, {
-        state: {
-          prefill: {
-            name: result?.extractedName || "",
-          },
-        },
+        state: { prefill: { name: result?.extractedName || "" } },
       });
     } catch (err) {
       console.error("SCAN ERROR:", err);
@@ -195,241 +146,163 @@ export default function LandingPage() {
 
   return (
     <div
-      className="min-vh-100 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden px-3"
+      className="min-vh-100 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden"
       style={{
-        background:
-          "radial-gradient(circle at 50% 50%, #ffffff 0%, #f0f0f0 100%)",
+        background: "radial-gradient(circle at 50% 50%, #ffffff 0%, #f0f0f0 100%)",
       }}
     >
-      {/* BACKGROUND */}
+      {/* BACKGROUND DECORATION */}
       <div
         className="position-absolute top-0 start-0 w-100 h-100 opacity-25"
         style={{
-          backgroundImage:
-            "radial-gradient(#ff4d3d 0.5px, transparent 0.5px)",
+          backgroundImage: "radial-gradient(#ff4d3d 0.5px, transparent 0.5px)",
           backgroundSize: "30px 30px",
           pointerEvents: "none",
         }}
       />
 
-      {/* LOGO */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-4 position-relative"
-        style={{ zIndex: 20 }}
-      >
-        <img
-          src={KyndrylLogo}
-          alt="Kyndryl"
-          style={{
-            width: "170px",
-          }}
-        />
-      </motion.div>
+      <div className="container py-4 position-relative" style={{ zIndex: 10, maxWidth: '1200px' }}>
+        <div className="row justify-content-center text-center">
+          <div className="col-12 col-md-10 col-lg-8 col-xl-7">
 
-      {/* TITLE */}
-      <div
-        className="text-center mb-4 position-relative"
-        style={{
-          maxWidth: "700px",
-          zIndex: 20,
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "clamp(2.5rem,5vw,5rem)",
-            fontWeight: "700",
-            letterSpacing: "-3px",
-            color: "#2b2b2b",
-            lineHeight: 1,
-          }}
-        >
-          60-Second
-          <span style={{ color: "#ff4d3d" }}> Challenge</span>
-        </h1>
-
-        <p
-          style={{
-            color: "#7a7a7a",
-            fontSize: "1rem",
-            marginTop: "20px",
-            lineHeight: 1.8,
-          }}
-        >
-          Hold your employee ID card inside the frame and capture the image.
-        </p>
-      </div>
-
-      {/* CAMERA */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="position-relative overflow-hidden rounded-5 shadow-lg"
-        style={{
-          width: "100%",
-          maxWidth: "520px",
-          aspectRatio: "4/3",
-          background: "#000",
-          zIndex: 10,
-        }}
-      >
-        {/* VIDEO */}
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="w-100 h-100"
-          style={{
-            objectFit: "cover",
-          }}
-        />
-
-        {/* FRAME */}
-        <div
-          className="position-absolute top-50 start-50 translate-middle"
-          style={{
-            width: "80%",
-            height: "55%",
-            border: "3px solid #ff4d3d",
-            borderRadius: "24px",
-            boxShadow: "0 0 0 9999px rgba(0,0,0,0.35)",
-            pointerEvents: "none",
-            zIndex: 5,
-          }}
-        />
-
-        {/* LOADING */}
-        <AnimatePresence>
-          {loading && (
+            {/* LOGO */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
-              style={{
-                background: "rgba(0,0,0,0.7)",
-                zIndex: 20,
-                pointerEvents: loading ? "all" : "none",
-              }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4"
             >
-              <div className="spinner-border text-light mb-3" />
+              <img
+                src={KyndrylLogo}
+                alt="Kyndryl"
+                style={{ width: "180px", height: "auto" }}
+              />
+            </motion.div>
 
-              <div
-                className="text-white fw-bold text-uppercase mb-2"
+            {/* HEADER */}
+            <div className="mb-4 mb-lg-5">
+              <h1
                 style={{
-                  letterSpacing: "2px",
-                  fontSize: "0.8rem",
+                  fontSize: "clamp(2.5rem, 6vw, 5.5rem)",
+                  fontWeight: "800",
+                  letterSpacing: "-2px",
+                  color: "#222",
+                  lineHeight: 1,
+                  marginBottom: "1rem"
                 }}
               >
-                SCANNING TEXT...
-              </div>
+                60-Second <span style={{ color: "#ff4d3d" }}>Challenge</span>
+              </h1>
+              <p className="text-secondary mx-auto" style={{ maxWidth: '500px', fontSize: '1.1rem' }}>
+                Position your employee ID card inside the frame to begin.
+              </p>
+            </div>
 
-              <div className="text-white-50 small">
-                Looking for your name
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* CAMERA ERROR */}
-        {cameraError && (
-          <div
-            className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center p-4"
-            style={{
-              background: "#111",
-              zIndex: 30,
-            }}
-          >
-            <Camera size={50} color="#ff4d3d" />
-
-            <p className="text-white mt-3 mb-4">
-              {cameraError}
-            </p>
-
-            <button
-              onClick={startCamera}
-              className="btn btn-light rounded-pill px-4"
+            {/* CAMERA KIOSK */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mx-auto position-relative rounded-5 shadow-lg overflow-hidden border border-white border-4"
+              style={{
+                width: "100%",
+                aspectRatio: "4/3",
+                maxWidth: "580px",
+                background: "#000",
+                boxShadow: "0 40px 100px rgba(0,0,0,0.1)"
+              }}
             >
-              <RefreshCw size={16} className="me-2" />
-              Retry
-            </button>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-100 h-100"
+                style={{ objectFit: "cover" }}
+              />
+
+              {/* SCANNING OVERLAY */}
+              <div
+                className="position-absolute top-50 start-50 translate-middle"
+                style={{
+                  width: "80%",
+                  height: "85%",
+                  border: "2px solid #ff4d3d",
+                  borderRadius: "24px",
+                  boxShadow: "0 0 0 9999px rgba(0,0,0,0.4)",
+                  pointerEvents: "none",
+                  zIndex: 5,
+                }}
+              >
+                {/* SCANNING LINE ANIMATION */}
+                {cameraReady && !loading && (
+                  <motion.div
+                    animate={{ top: ['0%', '100%', '0%'] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    className="position-absolute start-0 w-100"
+                    style={{ height: '2px', background: '#ff4d3d', boxShadow: '0 0 15px #ff4d3d' }}
+                  />
+                )}
+              </div>
+
+              <AnimatePresence>
+                {loading && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                    style={{ background: "rgba(0,0,0,0.8)", zIndex: 20 }}
+                  >
+                    <div className="spinner-border text-light mb-3" style={{ width: '3rem', height: '3rem' }} />
+                    <div className="text-white fw-bold tracking-widest text-uppercase">Analyzing Card...</div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {cameraError && (
+                <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-white p-4">
+                  <Camera size={48} className="mb-3 text-danger" />
+                  <p>{cameraError}</p>
+                  <button onClick={startCamera} className="btn btn-light rounded-pill px-4">Retry Camera</button>
+                </div>
+              )}
+            </motion.div>
+
+            {/* CONTROLS */}
+            <div className="mt-4 mt-lg-5 d-flex flex-column flex-sm-row justify-content-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={captureImage}
+                disabled={!cameraReady || loading}
+                className="btn btn-lg rounded-pill px-5 py-3 shadow-lg"
+                style={{
+                  background: "linear-gradient(135deg, #ff4d3d 0%, #ff1a1a 100%)",
+                  color: "#fff",
+                  border: "none",
+                  fontWeight: "700",
+                  minWidth: "220px"
+                }}
+              >
+                {loading ? "IDENTIFYING..." : "CAPTURE & START"}
+              </motion.button>
+
+              <button
+                onClick={() => navigate(`/register/${eventId}`)}
+                className="btn btn-lg btn-outline-dark rounded-pill px-4 py-3 border-2 fw-bold"
+              >
+                <UserPlus size={20} className="me-2" />
+                Manual Registration
+              </button>
+            </div>
+
+            <div className="mt-4 text-muted small opacity-75">
+              • Hold card steady • Avoid reflections • Ensure name is clear
+            </div>
           </div>
-        )}
-      </motion.div>
-
-      {/* BUTTONS */}
-      <div
-        className="d-flex flex-column flex-sm-row gap-3 mt-4 position-relative"
-        style={{ zIndex: 50 }}
-      >
-        {/* CAPTURE BUTTON */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={captureImage}
-          disabled={!cameraReady || loading}
-          className="btn rounded-pill px-5 py-3 shadow-lg"
-          style={{
-            background:
-              "linear-gradient(135deg, #ff4d3d 0%, #ff1a1a 100%)",
-            color: "#fff",
-            border: "none",
-            fontWeight: "700",
-            letterSpacing: "1px",
-            minWidth: "240px",
-            cursor:
-              !cameraReady || loading
-                ? "not-allowed"
-                : "pointer",
-          }}
-        >
-          {loading ? "SCANNING..." : "CAPTURE ID CARD"}
-        </motion.button>
-
-        {/* REGISTER BUTTON */}
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate(`/register/${eventId}`)}
-          className="btn btn-outline-dark rounded-pill px-4 py-3"
-          style={{
-            borderWidth: "2px",
-            fontWeight: "600",
-            background: "#fff",
-            cursor: "pointer",
-          }}
-        >
-          <UserPlus size={18} className="me-2" />
-          Manual Registration
-        </motion.button>
+        </div>
       </div>
 
-      {/* GUIDE */}
-      <div
-        className="text-center mt-4 position-relative"
-        style={{
-          color: "#8a8a8a",
-          fontSize: "0.9rem",
-          lineHeight: 1.8,
-          zIndex: 20,
-        }}
-      >
-        • Hold card steady
-        <br />
-        • Avoid reflections and glare
-        <br />
-        • Ensure name is clearly visible
-      </div>
-
-      {/* HIDDEN CANVAS */}
-      <canvas
-        ref={canvasRef}
-        style={{
-          display: "none",
-        }}
-      />
+      <canvas ref={canvasRef} style={{ display: "none" }} />
     </div>
   );
 }
