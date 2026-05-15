@@ -10,7 +10,7 @@ export default function ResultPage() {
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(10);
 
   // 1. Timer Logic
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function ResultPage() {
       <div className="min-vh-100 d-flex align-items-center justify-content-center bg-white">
         <div className="text-center">
           <div className="spinner-border text-danger mb-3" role="status" style={{ width: '3rem', height: '3rem' }}></div>
-          <div className="h5 fw-bold text-uppercase tracking-widest">Calculating Score...</div>
+
         </div>
       </div>
     );
