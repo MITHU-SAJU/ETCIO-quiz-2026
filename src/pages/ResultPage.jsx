@@ -131,7 +131,7 @@ export default function ResultPage() {
 
               <div className="user-block my-5">
                 <div className="h2 fw-bold mb-2" style={{ color: '#ff4d3d' }}>{user.name}</div>
-                <div className="user-info h5 text-secondary">{user.designation} • {user.company}</div>
+
               </div>
 
 
