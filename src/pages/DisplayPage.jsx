@@ -83,83 +83,66 @@ export default function DisplayPage() {
         
         {/* HEADER */}
         <div className="row align-items-center mb-5">
-          <div className="col-8">
-            <div className="d-flex align-items-center gap-4">
-              <h1 className="display-3 fw-900 mb-0 tracking-tighter">
-                60-Second <span style={{ color: '#ff4d3d' }}>CHALLENGE</span>
-              </h1>
-              <div className="d-flex align-items-center gap-3 bg-white bg-opacity-10 px-4 py-2 rounded-pill border border-white border-opacity-10">
-                <div className="rounded-circle bg-danger animate-pulse" style={{ width: '12px', height: '12px', boxShadow: '0 0 10px #ff4d3d' }}></div>
-                <span className="h5 mb-0 fw-bold text-uppercase tracking-widest">LIVE SCOREBOARD</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="col-4 d-flex justify-content-end align-items-center gap-4">
-            <div className="text-end">
-              <div className="h4 fw-900 text-uppercase tracking-widest mb-1">SCAN TO PLAY</div>
-              <div className="h6 text-white text-opacity-50 mb-0">Join the leadership challenge</div>
-            </div>
-            <div className="bg-white p-3 rounded-4 shadow-xl border border-white border-opacity-20" style={{ boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
-              <QRCode value={window.location.origin + "/start/" + eventId} size={100} />
-            </div>
+          <div className="col-12 text-center">
+            <h1 className="display-1 fw-900 mb-0 tracking-tighter">
+              60-Second <span style={{ color: '#ff4d3d' }}>CHALLENGE</span>
+            </h1>
+            <p className="h3 text-white text-opacity-50 mt-3 fw-light tracking-widest text-uppercase">The Executive Leadership Experience</p>
           </div>
         </div>
 
         {/* CONTENT GRID */}
-        <div className="row g-5 flex-grow-1">
+        <div className="row g-5 flex-grow-1 align-items-center justify-content-center">
           
-          {/* LEFT: STATS & RECENT */}
-          <div className="col-xl-4 d-flex flex-column gap-4">
-            
-            {/* STATS CARD */}
-            <div className="card border-0 rounded-5 p-5 flex-grow-1" style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="h4 fw-bold text-uppercase tracking-widest text-secondary mb-5">Event Analytics</div>
+          {/* LEFT: RECENT */}
+          <div className="col-xl-4">
+            <div className="card border-0 rounded-5 p-5 h-100" style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="h4 fw-bold text-uppercase tracking-widest text-secondary mb-5">Recently Participated</div>
               
-              <div className="d-flex flex-column gap-5">
-                <div className="stat-item">
-                  <div className="display-2 fw-900 text-danger mb-0" style={{ lineHeight: 1 }}>{stats?.totalRegistered || 0}</div>
-                  <div className="h5 text-uppercase tracking-widest text-white text-opacity-50">Leaders Registered</div>
-                </div>
-                
-                <div className="stat-item">
-                  <div className="display-2 fw-900 mb-0" style={{ lineHeight: 1 }}>{stats?.totalCompleted || 0}</div>
-                  <div className="h5 text-uppercase tracking-widest text-white text-opacity-50">Challenges Finished</div>
-                </div>
+              <div className="d-flex flex-column gap-4">
+                {top10?.slice(0, 5).map((player, idx) => (
+                  <motion.div 
+                    key={player.user_id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 d-flex align-items-center gap-4"
+                  >
+                    <div className="rounded-circle bg-danger" style={{ width: '12px', height: '12px' }}></div>
+                    <div>
+                      <div className="h4 fw-bold mb-0">{player.name}</div>
+                      <div className="text-white text-opacity-50 small">{player.company}</div>
+                    </div>
+                  </motion.div>
+                ))}
 
-                {/* RECENT PLAYER */}
-                <div className="mt-5">
-                  <AnimatePresence mode="wait">
-                    <motion.div 
-                      key={recentPlayer?.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="p-4 rounded-4"
-                      style={{ background: 'linear-gradient(135deg, #ff4d3d 0%, #ff1a1a 100%)', boxShadow: '0 20px 40px rgba(255,77,61,0.2)' }}
-                    >
-                      <div className="small fw-bold text-uppercase tracking-widest opacity-75 mb-2">Just Finished</div>
-                      <div className="h3 fw-900 mb-1">{recentPlayer?.name || 'Ready for play'}</div>
-                      <div className="h5 mb-0 opacity-90">{recentPlayer?.company || 'Waiting for first leader...'}</div>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
+                {(!top10 || top10.length === 0) && (
+                   <div className="text-center py-5 opacity-50">
+                      <div className="h2 mb-3">🤝</div>
+                      <p>Waiting for the first leader...</p>
+                   </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* RIGHT: THE RANKINGS */}
-          <div className="col-xl-8 h-100">
-            <div className="h-100 d-flex flex-column p-5 rounded-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="d-flex align-items-center justify-content-between mb-5">
-                <h2 className="display-4 fw-900 mb-0 tracking-tighter">LEADERBOARD</h2>
-                <div className="h5 text-secondary tracking-widest">TOP 10 PERFORMANCES</div>
+          {/* RIGHT: THE BIG QR */}
+          <div className="col-xl-6 text-center">
+            <div className="p-5 rounded-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <h2 className="display-4 fw-900 mb-5 tracking-tighter">SCAN TO START</h2>
+              
+              <div className="d-inline-block bg-white p-5 rounded-5 shadow-2xl mb-5" style={{ boxShadow: '0 40px 80px rgba(0,0,0,0.5)' }}>
+                <QRCode 
+                  value={window.location.origin + "/start/" + eventId} 
+                  size={400} 
+                  level="H"
+                />
               </div>
 
-              <div className="flex-grow-1 overflow-hidden leaderboard-container">
-                <Leaderboard 
-                  players={top10?.slice(0, 10)} 
-                  darkMode={true} 
-                />
+              <div className="d-flex align-items-center justify-content-center gap-4 mt-2">
+                <div style={{ width: '100px', height: '2px', background: 'linear-gradient(to left, #ff4d3d, transparent)' }}></div>
+                <div className="h4 mb-0 fw-bold text-uppercase tracking-widest">etcio2026</div>
+                <div style={{ width: '100px', height: '2px', background: 'linear-gradient(to right, #ff4d3d, transparent)' }}></div>
               </div>
             </div>
           </div>

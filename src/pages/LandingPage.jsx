@@ -5,6 +5,7 @@ import { Camera, UserPlus } from "lucide-react";
 import { callFunction } from "../lib/supabase";
 import { toast } from "react-hot-toast";
 import KyndrylLogo from "../assets/kyndryl.png";
+import '../pages/Screen/Screen.css';
 
 export default function LandingPage() {
   const { eventId } = useParams();
@@ -95,25 +96,18 @@ export default function LandingPage() {
 
       const imageData = canvas.toDataURL("image/jpeg", 0.9);
 
-      if (!eventId) {
-        throw new Error("Missing Event ID.");
-      }
-
-      console.log("SENDING TO BACKEND:", { eventId, imageLength: imageData.length });
+      if (!eventId) throw new Error("Missing Event ID.");
 
       const result = await callFunction("scan-id-card", {
         imageBase64: imageData,
         eventId,
       });
 
-      console.log("SCAN RESULT:", result);
-
-      if (result?.error) {
-        throw new Error(result.error);
-      }
+      if (result?.error) throw new Error(result.error);
 
       if (result?.userFound && result?.user) {
         toast.success(`Welcome ${result.user.name}`);
+
         const session = await callFunction("create-session", {
           eventCode: eventId,
           name: result.user.name,
@@ -124,7 +118,7 @@ export default function LandingPage() {
 
         if (session?.sessionId) {
           stopCamera();
-          navigate(`/game/${session.sessionId}`, {
+          navigate(`/sector/${session.sessionId}`, {
             state: { questions: session.questions || [] },
           });
           return;
@@ -145,159 +139,169 @@ export default function LandingPage() {
   };
 
   return (
-    <div
-      className="min-vh-100 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden"
-      style={{
-        background: "radial-gradient(circle at 50% 50%, #ffffff 0%, #f0f0f0 100%)",
-      }}
-    >
-      {/* BACKGROUND DECORATION */}
-      <div
-        className="position-absolute top-0 start-0 w-100 h-100 opacity-25"
-        style={{
-          backgroundImage: "radial-gradient(#ff4d3d 0.5px, transparent 0.5px)",
-          backgroundSize: "30px 30px",
-          pointerEvents: "none",
-        }}
-      />
+    <div className="min-vh-100 d-flex flex-column overflow-hidden position-relative bg-light">
+      {/* BACKGROUND GRID */}
+      <div className="landing-grid"></div>
 
-      <div className="container py-4 position-relative" style={{ zIndex: 10, maxWidth: '1200px' }}>
-        <div className="row justify-content-center text-center">
-          <div className="col-12 col-md-10 col-lg-8 col-xl-7">
+      {/* TOP NAVBAR - Full Width */}
+      <div className="container-fluid px-4 px-lg-5 py-4" style={{ zIndex: 20 }}>
+        <div className="d-flex align-items-center justify-content-between">
+          <motion.img
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            src={KyndrylLogo}
+            alt="Kyndryl"
+            className="landing-logo"
+          />
+        </div>
+      </div>
 
-            {/* LOGO */}
+      {/* MAIN FULL-WIDTH 2-COLUMN LAYOUT */}
+      <div className="flex-grow-1 container-fluid px-0">
+        <div className="row g-0 h-100">
+
+          {/* LEFT COLUMN - Content */}
+          <div className="col-lg-5 d-flex align-items-center p-4 p-lg-5">
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4"
+              className="w-100"
             >
-              <img
-                src={KyndrylLogo}
-                alt="Kyndryl"
-                style={{ width: "180px", height: "auto" }}
-              />
-            </motion.div>
+              <div className="landing-line mb-4"></div>
 
-            {/* HEADER */}
-            <div className="mb-4 mb-lg-5">
-              <h1
-                style={{
-                  fontSize: "clamp(2.5rem, 6vw, 5.5rem)",
-                  fontWeight: "800",
-                  letterSpacing: "-2px",
-                  color: "#222",
-                  lineHeight: 1,
-                  marginBottom: "1rem"
-                }}
-              >
-                60-Second <span style={{ color: "#ff4d3d" }}>Challenge</span>
+              <h1 className="landing-title">
+                60-Second <span>Challenge</span>
               </h1>
-              <p className="text-secondary mx-auto" style={{ maxWidth: '500px', fontSize: '1.1rem' }}>
-                Position your employee ID card inside the frame to begin.
+
+              <p className="landing-subtitle">
+                Scan your employee ID card to begin the AI leadership
+                experience. The system will identify your profile and
+                personalize the journey instantly.
               </p>
-            </div>
 
-            {/* CAMERA KIOSK */}
+              {/* INFO CARDS */}
+              <div className="row g-3 mt-5">
+                <div className="col-12">
+                  <div className="info-card">
+                    <div className="info-dot"></div>
+                    Position your ID card clearly inside the scanning frame
+                  </div>
+                </div>
+                <div className="col-12">
+                  <div className="info-card">
+                    <div className="info-dot"></div>
+                    Avoid reflections and ensure proper lighting
+                  </div>
+                </div>
+                <div className="col-12">
+                  <div className="info-card">
+                    <div className="info-dot"></div>
+                    Your session will begin automatically after verification
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* RIGHT COLUMN - Camera */}
+          <div className="col-lg-7 d-flex align-items-center justify-content-center p-4 p-lg-5 bg-dark">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mx-auto position-relative rounded-5 shadow-lg overflow-hidden border border-white border-4"
-              style={{
-                width: "100%",
-                aspectRatio: "4/3",
-                maxWidth: "580px",
-                background: "#000",
-                boxShadow: "0 40px 100px rgba(0,0,0,0.1)"
-              }}
+              className="camera-shell w-100"
+              style={{ maxWidth: "620px" }}
             >
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-100 h-100"
-                style={{ objectFit: "cover" }}
-              />
+              {/* CAMERA HEADER */}
+              <div className="camera-header">
+                <div className="d-flex align-items-center gap-2">
+                  <div className="camera-dot bg-danger"></div>
+                  <div className="camera-dot bg-warning"></div>
+                  <div className="camera-dot bg-success"></div>
+                </div>
+                <div className="camera-status">
+                  {cameraReady ? "CAMERA ACTIVE" : "INITIALIZING"}
+                </div>
+              </div>
 
-              {/* SCANNING OVERLAY */}
-              <div
-                className="position-absolute top-50 start-50 translate-middle"
-                style={{
-                  width: "80%",
-                  height: "85%",
-                  border: "2px solid #ff4d3d",
-                  borderRadius: "24px",
-                  boxShadow: "0 0 0 9999px rgba(0,0,0,0.4)",
-                  pointerEvents: "none",
-                  zIndex: 5,
-                }}
-              >
-                {/* SCANNING LINE ANIMATION */}
-                {cameraReady && !loading && (
-                  <motion.div
-                    animate={{ top: ['0%', '100%', '0%'] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    className="position-absolute start-0 w-100"
-                    style={{ height: '2px', background: '#ff4d3d', boxShadow: '0 0 15px #ff4d3d' }}
-                  />
+              {/* CAMERA AREA */}
+              <div className="camera-wrapper">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="camera-video"
+                />
+
+                {/* SCAN FRAME */}
+                <div className="scan-frame">
+                  <div className="corner top-left"></div>
+                  <div className="corner top-right"></div>
+                  <div className="corner bottom-left"></div>
+                  <div className="corner bottom-right"></div>
+
+                  {cameraReady && !loading && (
+                    <motion.div
+                      animate={{ top: ["0%", "100%", "0%"] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                      className="scan-line"
+                    />
+                  )}
+                </div>
+
+                {/* LOADING OVERLAY */}
+                <AnimatePresence>
+                  {loading && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="camera-overlay"
+                    >
+                      <div className="text-center">
+                        <div className="spinner-border text-danger" style={{ width: "4rem", height: "4rem" }} />
+                        <div className="scan-text mt-4">ANALYZING IDENTITY</div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* CAMERA ERROR */}
+                {cameraError && (
+                  <div className="camera-overlay">
+                    <div className="text-center text-white">
+                      <Camera size={60} className="mb-4 text-danger" />
+                      <h4 className="fw-bold mb-3">Camera Access Failed</h4>
+                      <p className="mb-4 opacity-75">{cameraError}</p>
+                      <button onClick={startCamera} className="btn btn-light rounded-pill px-5">
+                        Retry Camera
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
 
-              <AnimatePresence>
-                {loading && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
-                    style={{ background: "rgba(0,0,0,0.8)", zIndex: 20 }}
-                  >
-                    <div className="spinner-border text-light mb-3" style={{ width: '3rem', height: '3rem' }} />
-                    <div className="text-white fw-bold tracking-widest text-uppercase">Analyzing Card...</div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* ACTION BUTTONS */}
+              <div className="camera-actions">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={captureImage}
+                  disabled={!cameraReady || loading}
+                  className="capture-btn"
+                >
+                  {loading ? "IDENTIFYING..." : "CAPTURE & START"}
+                </motion.button>
 
-              {cameraError && (
-                <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-white p-4">
-                  <Camera size={48} className="mb-3 text-danger" />
-                  <p>{cameraError}</p>
-                  <button onClick={startCamera} className="btn btn-light rounded-pill px-4">Retry Camera</button>
-                </div>
-              )}
+                <button
+                  onClick={() => navigate(`/register/${eventId}`)}
+                  className="manual-btn"
+                >
+                  <UserPlus size={18} />
+                  Manual Registration
+                </button>
+              </div>
             </motion.div>
-
-            {/* CONTROLS */}
-            <div className="mt-4 mt-lg-5 d-flex flex-column flex-sm-row justify-content-center gap-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={captureImage}
-                disabled={!cameraReady || loading}
-                className="btn btn-lg rounded-pill px-5 py-3 shadow-lg"
-                style={{
-                  background: "linear-gradient(135deg, #ff4d3d 0%, #ff1a1a 100%)",
-                  color: "#fff",
-                  border: "none",
-                  fontWeight: "700",
-                  minWidth: "220px"
-                }}
-              >
-                {loading ? "IDENTIFYING..." : "CAPTURE & START"}
-              </motion.button>
-
-              <button
-                onClick={() => navigate(`/register/${eventId}`)}
-                className="btn btn-lg btn-outline-dark rounded-pill px-4 py-3 border-2 fw-bold"
-              >
-                <UserPlus size={20} className="me-2" />
-                Manual Registration
-              </button>
-            </div>
-
-            <div className="mt-4 text-muted small opacity-75">
-              • Hold card steady • Avoid reflections • Ensure name is clear
-            </div>
           </div>
         </div>
       </div>

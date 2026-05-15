@@ -107,14 +107,14 @@ export default function ResultPage() {
 
         <div className="row g-4 align-items-stretch justify-content-center">
 
-          {/* LEFT: Hurray & Score */}
-          <div className="col-12 col-lg-5 col-xl-5">
+          {/* LEFT: Thank You Message */}
+          <div className="col-12 col-lg-8 col-xl-7">
 
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="result-left-card h-100 d-flex flex-column justify-content-between"
+              className="result-left-card h-100 d-flex flex-column justify-content-between text-center"
             >
               <div>
                 <div className="result-tag">Challenge Completed</div>
@@ -124,85 +124,30 @@ export default function ResultPage() {
                   transition={{ duration: 0.6 }}
                   className="hurray-text"
                 >
-                  HURRAY!
+                  THANK YOU!
                 </motion.h1>
-                <h2 className="result-title">You've Finished</h2>
+                <h2 className="result-title mt-3">For sharing your perspective.</h2>
               </div>
 
-              <div className="user-block my-4">
-                <div className="user-name h3 fw-bold mb-1">{user.name}</div>
-                <div className="user-info text-secondary">{user.designation} • {user.company}</div>
+              <div className="user-block my-5">
+                <div className="h2 fw-bold mb-2" style={{ color: '#ff4d3d' }}>{user.name}</div>
+                <div className="user-info h5 text-secondary">{user.designation} • {user.company}</div>
               </div>
 
-              <div className="score-area text-center my-4">
-                <motion.div
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 100, delay: 0.2 }}
-                  className="score-circle mx-auto"
-                >
-                  <div className="score-inner">
-                    <div className="score-value">{result.totalScore}</div>
-                    <div className="score-label">POINTS</div>
-                  </div>
-                </motion.div>
-              </div>
-              
-              <div className="mt-4 text-center">
-                <div 
-                  className="py-2 px-4 rounded-pill d-inline-flex align-items-center gap-3 shadow-sm"
+
+
+              <div className="mt-5">
+                <div
+                  className="py-3 px-5 rounded-pill d-inline-flex align-items-center gap-3 shadow-sm"
                   style={{ background: '#fff', border: '1px solid rgba(255,77,61,0.2)' }}
                 >
                   <div className="spinner-border spinner-border-sm text-danger" role="status"></div>
-                  <span className="small fw-bold text-uppercase tracking-wider text-danger" style={{ fontSize: '0.75rem' }}>
-                    Next Player in {countdown}s
+                  <span className="h6 mb-0 fw-bold text-uppercase tracking-wider text-danger">
+                    Returning to Home in {countdown}s
                   </span>
                 </div>
               </div>
 
-            </motion.div>
-
-          </div>
-
-          {/* RIGHT: Performance Stats */}
-          <div className="col-12 col-lg-7 col-xl-6">
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="result-right-card h-100 d-flex flex-column"
-            >
-              <div className="d-flex align-items-center justify-content-between mb-5">
-                <div>
-                  <div className="leaderboard-tag">ANALYTICS</div>
-                  <h2 className="leaderboard-title h1 fw-bold mb-0">Performance</h2>
-                </div>
-                <div className="trophy-box">🏆</div>
-              </div>
-
-              <div className="row g-4 mb-5">
-                <div className="col-12 col-sm-6">
-                  <div className="stat-card dark-card h-100">
-                    <div className="stat-label">Current Rank</div>
-                    <div className="stat-value">#{result.rank}</div>
-                    <div className="stat-sub">Across all leaders</div>
-                  </div>
-                </div>
-                <div className="col-12 col-sm-6">
-                  <div className="stat-card h-100 border-2">
-                    <div className="stat-label text-secondary">Time Taken</div>
-                    <div className="stat-value text-danger">{Math.round(result.totalResponseTime)}s</div>
-                    <div className="stat-sub">Response speed</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="leaderboard-message flex-grow-1 d-flex flex-column justify-content-center text-center p-4 rounded-4 bg-dark text-white position-relative overflow-hidden">
-                <div className="message-icon h1 mb-3">✨</div>
-                <h3 className="h4 fw-bold mb-3">Leadership Insight</h3>
-                <p className="opacity-75 mb-0">Your decisions demonstrate high-impact leadership. Check the live leaderboard to see how you compare with other CIOs.</p>
-              </div>
             </motion.div>
 
           </div>

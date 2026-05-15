@@ -53,15 +53,6 @@ export default function StartPage() {
           setEventData(null)
         } else {
           setEventData(eData)
-          // Fetch Leaderboard Data
-          try {
-            const lbData = await callFunction('get-leaderboard', {
-              eventCode: eventId
-            })
-            setTop10(lbData.top10 || [])
-          } catch (lbErr) {
-            console.error('Leaderboard fetch error:', lbErr)
-          }
         }
       } catch (err) {
         console.error('Fetch error:', err)
@@ -76,7 +67,7 @@ export default function StartPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!formData.name || !formData.company) {
       toast.error('Name and Company are required')
       return
@@ -91,7 +82,7 @@ export default function StartPage() {
       })
 
       if (result.sessionId) {
-        navigate(`/game/${result.sessionId}`, {
+        navigate(`/sector/${result.sessionId}`, {
           state: { questions: result.questions }
         })
       }
@@ -131,7 +122,7 @@ export default function StartPage() {
 
         {/* LEFT SIDE */}
         <div
-          className="col-lg-6 d-flex flex-column justify-content-center position-relative px-4 px-md-5 py-5 py-lg-0"
+          className="col-lg-5 d-flex flex-column justify-content-center position-relative px-4 px-md-5 py-5 py-lg-0"
           style={{
             background: "#f5f5f5",
             overflow: "hidden",
@@ -139,8 +130,11 @@ export default function StartPage() {
           }}
         >
 
-          {/* Logo */}
-          <div className="mb-4 mb-lg-5 text-center text-lg-start">
+          {/* TOP LEFT LOGO */}
+          <div
+            className="position-absolute top-0 start-0 p-4 p-lg-5"
+            style={{ zIndex: 20 }}
+          >
             <img
               src={KyndrylLogo}
               alt="Kyndryl Logo"
@@ -151,8 +145,6 @@ export default function StartPage() {
               }}
             />
           </div>
-
-
 
           {/* Main Title */}
           <div className="position-relative z-2 text-center text-lg-start">
@@ -170,212 +162,6 @@ export default function StartPage() {
             </h1>
           </div>
 
-          {/* QR + LEADERBOARD SECTION */}
-          <div className="row mt-5 g-4 align-items-stretch d-none d-lg-flex">
-
-            {/* LEFT SIDE - QR */}
-            <div className="col-lg-4">
-
-              <div
-                className="h-100 d-flex flex-column justify-content-center align-items-start"
-                style={{
-                  minHeight: "100%",
-                }}
-              >
-
-                {/* TEXT */}
-                <p
-                  className="mb-4 text-center"
-                  style={{
-                    fontSize: "1.8rem",
-                    color: "#ff4d3d",
-                    letterSpacing: "-1px",
-                    lineHeight: "1.1",
-                    fontWeight: "600",
-                  }}
-                >
-                  Scan to Play
-
-                </p>
-
-                {/* QR CARD */}
-                <div
-                  className="bg-white rounded-4 shadow-sm"
-                  style={{
-                    padding: "18px",
-                  }}
-                >
-                  <QRCode
-                    value={window.location.href}
-                    size={200}
-                    style={{
-                      height: "auto",
-                      maxWidth: "100%",
-                      width: "100%",
-                    }}
-                    viewBox={`0 0 256 256`}
-                  />
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* RIGHT SIDE - LEADERBOARD */}
-            <div className="col-lg-8">
-
-              <div
-                className="h-100"
-                style={{
-                  border: "2px solid #ff4d3d",
-                  borderRadius: "28px",
-                  padding: "28px",
-                  background: "rgba(255,255,255,0.75)",
-                  backdropFilter: "blur(10px)",
-                }}
-              >
-
-                {/* HEADER */}
-                <div className="d-flex align-items-center justify-content-between mb-4">
-
-                  <div>
-
-                    <div
-                      style={{
-                        fontSize: "0.75rem",
-                        letterSpacing: "2px",
-                        textTransform: "uppercase",
-                        color: "#8a8a8a",
-                        fontWeight: "700",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      Live Rankings
-                    </div>
-
-                    <h3
-                      className="mb-0"
-                      style={{
-                        fontSize: "2rem",
-                        fontWeight: "700",
-                        color: "#2b2b2b",
-                        letterSpacing: "-1px",
-                      }}
-                    >
-                      Top Performers
-                    </h3>
-
-                  </div>
-
-                  {/* BUTTON */}
-                  <button
-                    type="button"
-                    className="btn px-4 py-2 rounded-pill"
-                    style={{
-                      background: "#ff4d3d",
-                      color: "#fff",
-                      border: "none",
-                      fontWeight: "600",
-                      fontSize: "0.9rem",
-                      letterSpacing: "0.5px",
-                      whiteSpace: "nowrap",
-                      zIndex: 100,
-                      position: "relative",
-                    }}
-                    onClick={() => navigate(`/display/${eventId}`)}
-                  >
-                    View All
-                  </button>
-
-                </div>
-
-                {/* PLAYERS */}
-                <div className="d-flex flex-column gap-3">
-
-                  {top10?.slice(0, 3).map((player, index) => (
-                    <div
-                      key={player.user_id}
-                      className="d-flex align-items-center justify-content-between bg-white rounded-4 px-4 py-3 shadow-sm"
-                      style={{
-                        minHeight: "88px",
-                      }}
-                    >
-
-                      {/* LEFT */}
-                      <div className="d-flex align-items-center gap-3 overflow-hidden">
-
-                        {/* RANK */}
-                        <div
-                          className="rounded-circle d-flex align-items-center justify-content-center"
-                          style={{
-                            width: "52px",
-                            height: "52px",
-                            background:
-                              index === 0
-                                ? "#ff4d3d"
-                                : "#2b2b2b",
-
-                            color: "#fff",
-                            fontWeight: "700",
-                            fontSize: "1rem",
-                            flexShrink: 0,
-                          }}
-                        >
-                          #{index + 1}
-                        </div>
-
-                        {/* DETAILS */}
-                        <div className="overflow-hidden">
-
-                          <div
-                            className="fw-bold text-truncate"
-                            style={{
-                              maxWidth: "240px",
-                              color: "#2b2b2b",
-                              fontSize: "1rem",
-                            }}
-                          >
-                            {player.name}
-                          </div>
-
-                          <div
-                            className="text-truncate"
-                            style={{
-                              fontSize: "0.88rem",
-                              color: "#8a8a8a",
-                              maxWidth: "240px",
-                            }}
-                          >
-                            {player.company}
-                          </div>
-
-                        </div>
-
-                      </div>
-
-                      {/* SCORE */}
-                      <div
-                        style={{
-                          fontSize: "1.8rem",
-                          fontWeight: "700",
-                          color: "#ff4d3d",
-                          letterSpacing: "-1px",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {player.total_score}
-                      </div>
-
-                    </div>
-                  ))}
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
 
           {/* Decorative Pattern */}
           <div
@@ -418,10 +204,10 @@ export default function StartPage() {
               minHeight: "60vh",
             }}
           >
-            
+
             {/* Back Button */}
             <div className="mb-4">
-              <button 
+              <button
                 onClick={() => navigate(`/start/${eventId}`)}
                 className="btn btn-link text-muted p-0 text-decoration-none small fw-bold"
               >
@@ -644,7 +430,7 @@ export default function StartPage() {
             </form>
 
             {/* Footer */}
-            <div className="mt-5 pt-3">
+            {/* <div className="mt-5 pt-3">
               <p
                 className="mb-0"
                 style={{
@@ -656,7 +442,7 @@ export default function StartPage() {
                 Powered by <strong>ETCIO</strong> &{" "}
                 <strong>Enterprise Leaders Network</strong>
               </p>
-            </div>
+            </div> */}
 
           </div>
         </div>

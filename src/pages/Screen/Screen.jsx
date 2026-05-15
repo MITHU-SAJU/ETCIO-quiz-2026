@@ -1,4 +1,3 @@
-import "./Screen.css";
 
 function Screen() {
   return (

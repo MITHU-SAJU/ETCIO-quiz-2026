@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { callFunction } from '../lib/supabase'
+import { callFunction, callRPC } from '../lib/supabase'
 import { toast } from 'react-hot-toast'
 
 export default function GamePage() {
@@ -14,16 +14,14 @@ export default function GamePage() {
   const [questions, setQuestions] = useState(location.state?.questions || [])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [timeLeft, setTimeLeft] = useState(60)
-  const [selectedOption, setSelectedOption] = useState(null)
-  const [correctOption, setCorrectOption] = useState(null)
+  const [selectedOptions, setSelectedOptions] = useState([])
   const [error, setError] = useState(null)
-  const [feedbackVisible, setFeedbackVisible] = useState(false)
   const timerRef = useRef(null)
   const synthRef = useRef(window.speechSynthesis)
 
   const speak = (text) => {
     if (!synthRef.current) return
-    synthRef.current.cancel() 
+    synthRef.current.cancel()
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.rate = 1.0
     utterance.pitch = 1.0
@@ -71,13 +69,27 @@ export default function GamePage() {
   }
 
   const autoSubmit = () => {
-    if (!submitting && !feedbackVisible) {
+    if (!submitting) {
       handleSubmit(null, 60)
     }
   }
 
-  const handleSubmit = async (optionKey, forceTime) => {
-    if (submitting || feedbackVisible) return
+  const handleToggleOption = (optionKey) => {
+    if (submitting) return;
+
+    setSelectedOptions(prev => {
+      if (prev.includes(optionKey)) {
+        return prev.filter(k => k !== optionKey);
+      }
+      // Removed the limit of 2 selections
+      return [...prev, optionKey].sort();
+    });
+  }
+
+  const handleSubmit = async (forceOptions, forceTime) => {
+    const finalOptions = forceOptions !== undefined ? forceOptions : selectedOptions;
+    if (submitting) return
+
     setSubmitting(true)
     if (timerRef.current) clearInterval(timerRef.current)
 
@@ -85,28 +97,21 @@ export default function GamePage() {
     const responseTime = forceTime || (60 - timeLeft)
 
     try {
-      const result = await callFunction('submit-answer', {
-        sessionId,
-        questionId: currentQuestion.id,
-        selectedOption: optionKey,
-        responseTime: responseTime
+      const result = await callRPC('submit_answer', {
+        p_session_id: sessionId,
+        p_question_id: currentQuestion.id,
+        p_selected_option: (finalOptions && finalOptions.length > 0) ? finalOptions.join(',') : null,
+        p_response_time: responseTime
       })
 
-      setCorrectOption(result.correctOption)
-      setFeedbackVisible(true)
-
-      setTimeout(() => {
-        if (result.redirectToResult) {
-          navigate(`/result/${sessionId}`)
-        } else {
-          setCurrentIndex(prev => prev + 1)
-          setFeedbackVisible(false)
-          setCorrectOption(null)
-          setSelectedOption(null)
-          setSubmitting(false)
-          startTimer()
-        }
-      }, 1500)
+      if (result.redirectToResult) {
+        navigate(`/result/${sessionId}`)
+      } else {
+        setCurrentIndex(prev => prev + 1)
+        setSelectedOptions([])
+        setSubmitting(false)
+        startTimer()
+      }
 
     } catch (error) {
       toast.error('Submission failed')
@@ -125,23 +130,13 @@ export default function GamePage() {
   const question = questions[currentIndex]
 
   useEffect(() => {
-    if (question && !loading && !feedbackVisible) {
+    if (question && !loading) {
       const timeout = setTimeout(() => {
         speak(`${question.title}. ${question.scenario}`);
       }, 500);
       return () => clearTimeout(timeout);
     }
-  }, [currentIndex, loading, feedbackVisible, question]);
-
-  useEffect(() => {
-    if (feedbackVisible && selectedOption) {
-      if (selectedOption === correctOption) {
-        speak("Correct!");
-      } else {
-        speak("Incorrect. The correct answer was " + correctOption);
-      }
-    }
-  }, [feedbackVisible, selectedOption, correctOption]);
+  }, [currentIndex, loading, question]);
 
   if (loading && !question) {
     return (
@@ -166,117 +161,214 @@ export default function GamePage() {
   }
 
   const getOptionClass = (key) => {
-    if (!feedbackVisible) return selectedOption === key ? 'selected' : ''
-    if (key === correctOption) return 'correct'
-    if (key === selectedOption && key !== correctOption) return 'wrong'
-    return 'fade-out'
+    return selectedOption === key ? 'selected' : ''
   }
 
   return (
     <div
       className="min-vh-100 d-flex flex-column position-relative overflow-hidden"
-      style={{ background: "#f4f4f4" }}
+      style={{ background: "#ffffff" }}
     >
-      {/* BACKGROUND DECORATION */}
+      {/* KYNDRYL ACCENT - TOP BAR */}
       <div
-        className="position-absolute top-0 end-0 h-100 d-none d-lg-block opacity-10"
-        style={{ width: "300px", zIndex: 0 }}
-      >
-        {[...Array(15)].map((_, i) => (
-          <div key={i} style={{ position: "absolute", right: `${i * 25}px`, top: "-10%", width: "2px", height: "130%", background: "#ff4d3d", transform: "skewX(-22deg)" }} />
-        ))}
-      </div>
+        className="position-absolute top-0 start-0 w-100"
+        style={{ height: "4px", background: "#ff4d3d", zIndex: 100 }}
+      />
+
+      {/* BACKGROUND DECORATION - SUBTLE GRID */}
+      <div
+        className="position-absolute inset-0 opacity-05"
+        style={{
+          backgroundImage: `radial-gradient(#ff4d3d 0.5px, transparent 0.5px)`,
+          backgroundSize: "30px 30px",
+          zIndex: 0
+        }}
+      />
 
       <div className="container py-4 py-lg-5 d-flex flex-column justify-content-between min-vh-100 position-relative" style={{ zIndex: 2, maxWidth: '1400px' }}>
-        
+
         {/* TOP ROW: Title & Timer */}
         <div>
           <div className="row align-items-center mb-4 mb-lg-5">
             <div className="col-lg-8">
               <div className="d-flex align-items-center gap-3 mb-4">
-                <div className="px-4 py-2 rounded-pill bg-dark text-white fw-bold text-uppercase tracking-widest" style={{ fontSize: '0.75rem' }}>
-                  Round {currentIndex + 1} / {questions.length}
+                <div className="px-3 py-1 bg-light text-dark fw-bold text-uppercase tracking-widest border-start border-4 border-danger" style={{ fontSize: '0.7rem' }}>
+                  CHALLENGE {currentIndex + 1} OF {questions.length}
                 </div>
-                <div style={{ width: "60px", height: "2px", background: "#ff4d3d" }} />
               </div>
 
               <motion.h2
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
                 className="mb-3"
-                style={{ fontSize: "clamp(2.5rem, 5vw, 4.5rem)", color: "#ff4d3d", letterSpacing: "-2px", fontWeight: "300", lineHeight: 1.1 }}
+                style={{
+                  fontSize: "clamp(2rem, 4vw, 4rem)",
+                  fontWeight: "200",
+                  color: "rgb(255, 77, 61)",
+                  letterSpacing: "-2px",
+                  lineHeight: 1.1,
+                }}
               >
                 {question.title}
               </motion.h2>
 
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mb-0 text-secondary"
-                style={{ fontSize: "clamp(1rem, 1.1vw, 1.2rem)", lineHeight: "1.7", maxWidth: "850px" }}
+                className="mb-0 text-secondary ps-4 border-start border-1 border-success"
+                style={{ fontSize: "clamp(1rem, 1.1vw, 1.15rem)", lineHeight: "1.7", maxWidth: "800px" }}
               >
                 {question.scenario}
-              </motion.p>
+              </motion.div>
             </div>
 
             <div className="col-lg-4 d-flex justify-content-center justify-content-lg-end mt-4 mt-lg-0">
-              <div className="position-relative d-flex align-items-center justify-content-center shadow-lg rounded-circle bg-white" style={{ width: "160px", height: "160px" }}>
-                <svg width="160" height="160" viewBox="0 0 160 160" className="position-absolute">
-                  <circle cx="80" cy="80" r="72" fill="none" stroke="#eee" strokeWidth="6" />
-                  <circle cx="80" cy="80" r="72" fill="none" stroke="#ff4d3d" strokeWidth="6" strokeLinecap="round" strokeDasharray="452" strokeDashoffset={452 - (452 * timeLeft) / 60} transform="rotate(-90 80 80)" style={{ transition: "stroke-dashoffset 1s linear" }} />
+              <div className="position-relative d-flex align-items-center justify-content-center bg-white shadow-sm border border-light" style={{ width: "140px", height: "140px", borderRadius: "20px" }}>
+                <svg width="120" height="120" viewBox="0 0 120 120" className="position-absolute">
+                  <circle cx="60" cy="60" r="56" fill="none" stroke="#f8f8f8" strokeWidth="4" />
+                  <circle cx="60" cy="60" r="56" fill="none" stroke="#ff4d3d" strokeWidth="4" strokeLinecap="square" strokeDasharray="351.8" strokeDashoffset={351.8 - (351.8 * timeLeft) / 60} transform="rotate(-90 60 60)" style={{ transition: "stroke-dashoffset 1s linear" }} />
                 </svg>
                 <div className="text-center">
-                  <div style={{ fontSize: "3rem", fontWeight: "800", color: "#ff4d3d", lineHeight: 1 }}>{timeLeft}</div>
-                  <div className="text-uppercase tracking-widest text-muted mt-1" style={{ fontSize: "0.6rem", fontWeight: "700" }}>Secs</div>
+                  <div style={{ fontSize: "2.8rem", fontWeight: "900", color: "#111", lineHeight: 1 }}>{timeLeft}</div>
+                  <div className="text-uppercase tracking-widest text-danger fw-bold" style={{ fontSize: "0.55rem" }}>SECONDS</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="progress mb-5" style={{ height: '6px', borderRadius: '10px', background: '#e0e0e0' }}>
-            <motion.div initial={{ width: 0 }} animate={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }} className="progress-bar bg-danger" style={{ borderRadius: '10px' }} />
+          {/* PROGRESS BAR - KYNDRYL STYLE */}
+          <div
+            className="mb-5 position-relative"
+            style={{
+              height: "4px",
+              background: "#f0f0f0",
+            }}
+          >
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{
+                width: `${((currentIndex + 1) / questions.length) * 100}%`,
+              }}
+              className="position-absolute top-0 start-0 h-100"
+              style={{
+                background: "rgb(255, 77, 61)",
+              }}
+            />
           </div>
         </div>
 
         {/* MIDDLE ROW: Options */}
-        <div className="row g-4 mb-auto">
+        <div className="mb-auto">
           <AnimatePresence mode="wait">
-            <motion.div key={currentIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="row g-3 g-lg-4 m-0 p-0">
-              {question.options.map((option, idx) => (
-                <div className="col-12 col-md-6" key={option.id || idx}>
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="d-grid d-grid-custom gap-4"
+              style={{
+                gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+              }}
+            >
+              {question.options.map((option, idx) => {
+                const isSelected = selectedOptions.includes(option.option_key);
+                const order = selectedOptions.indexOf(option.option_key) + 1;
+
+                return (
                   <motion.button
-                    whileHover={{ y: -5, scale: 1.01 }}
+                    key={option.id || idx}
+                    whileHover={{ y: -5 }}
                     whileTap={{ scale: 0.98 }}
-                    disabled={submitting || feedbackVisible}
-                    onClick={() => { setSelectedOption(option.option_key); handleSubmit(option.option_key); }}
-                    className={`w-100 h-100 text-start border-0 p-4 rounded-4 shadow-sm transition-all position-relative overflow-hidden ${getOptionClass(option.option_key)}`}
+                    disabled={submitting}
+                    onClick={() => handleToggleOption(option.option_key)}
+                    className="border-0 p-4 text-start position-relative d-flex flex-column justify-content-between transition-all"
                     style={{
-                      minHeight: '140px',
-                      background: selectedOption === option.option_key ? '#2b2b2b' : '#fff',
-                      color: selectedOption === option.option_key ? '#fff' : '#2b2b2b',
-                      border: selectedOption === option.option_key ? '2px solid #ff4d3d' : '2px solid transparent'
+                      aspectRatio: "1 / 1.1",
+                      background: isSelected ? "#ff4d3d" : "#ffffff",
+                      color: isSelected ? "#ffffff" : "#111111",
+                      borderRadius: "0px", // Kyndryl often uses sharp or very slightly rounded edges
+                      boxShadow: isSelected
+                        ? "0 15px 35px rgba(255, 77, 61, 0.3)"
+                        : "0 8px 20px rgba(0,0,0,0.04)",
+                      border: isSelected ? "1px solid #ff4d3d" : "1px solid #eeeeee",
+                      minHeight: "240px"
                     }}
                   >
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px', background: selectedOption === option.option_key ? '#ff4d3d' : '#f0f0f0', color: selectedOption === option.option_key ? '#fff' : '#2b2b2b' }}>
-                        {option.option_key}
-                      </div>
-                      {feedbackVisible && option.option_key === correctOption && <span className="badge bg-success rounded-pill px-3 py-2">CORRECT</span>}
-                      {feedbackVisible && option.option_key === selectedOption && option.option_key !== correctOption && <span className="badge bg-danger rounded-pill px-3 py-2">WRONG</span>}
+                    {/* Corner Number */}
+                    <div className={`fw-bold mb-4 ${isSelected ? 'text-white' : 'text-danger'}`} style={{ fontSize: "1.2rem", opacity: isSelected ? 1 : 0.4 }}>
+                      {option.option_key}
                     </div>
-                    <div className="h5 mb-0 fw-500">{option.option_text}</div>
+
+                    {/* Option Text */}
+                    <div className="fw-bold mb-3" style={{ fontSize: "1.1rem", lineHeight: "1.3", letterSpacing: "-0.2px" }}>
+                      {option.option_text}
+                    </div>
+
+                    {/* Selection Indicator Pill */}
+                    <div className="mt-auto d-flex align-items-center justify-content-between">
+                      <div style={{ width: "30px", height: "2px", background: isSelected ? "#fff" : "#ff4d3d", opacity: 0.8 }} />
+                      {isSelected && (
+                        <div className="bg-white text-danger fw-black rounded-circle d-flex align-items-center justify-content-center shadow-sm" style={{ width: "22px", height: "22px", fontSize: "0.65rem" }}>
+                          {order}
+                        </div>
+                      )}
+                    </div>
                   </motion.button>
-                </div>
-              ))}
+                );
+              })}
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* BOTTOM ROW: Footer */}
-        <div className="text-center pt-4 opacity-50">
-          <div className="text-uppercase tracking-widest small fw-bold">Think Fast • Decide Smart • Lead Boldly</div>
+        {/* SUBMIT BUTTON ROW */}
+        <div className="mt-5 text-center">
+          <AnimatePresence>
+            {selectedOptions.length > 0 && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                whileHover={{ backgroundColor: "#111" }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleSubmit()}
+                disabled={submitting}
+                className="btn btn-danger py-3 px-5 border-0 shadow-lg d-inline-flex align-items-center gap-3"
+                style={{
+                  borderRadius: "0px",
+                  fontWeight: "900",
+                  letterSpacing: "2px",
+                  fontSize: "1rem",
+                  background: "#ff4d3d"
+                }}
+              >
+                {submitting ? "PROCESSING..." : `CONFIRM ${selectedOptions.length > 1 ? 'DECISIONS' : 'DECISION'}`}
+                <div style={{ width: "20px", height: "1px", background: "#fff" }} />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          <div className="mt-4 text-muted opacity-50 text-uppercase tracking-widest fw-bold" style={{ fontSize: "0.65rem" }}>
+            Identify your priorities and confirm to proceed
+          </div>
         </div>
       </div>
+
+      {/* MOBILE RESPONSIVE STYLE OVERRIDE */}
+      <style>{`
+        .d-grid-custom {
+          grid-template-columns: repeat(5, 1fr);
+        }
+        @media (max-width: 1200px) {
+          .d-grid-custom { grid-template-columns: repeat(3, 1fr) !important; }
+        }
+        @media (max-width: 768px) {
+          .d-grid-custom { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 480px) {
+          .d-grid-custom { grid-template-columns: repeat(1, 1fr) !important; }
+        }
+        .transition-all { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+      `}</style>
     </div>
   )
 }

@@ -2,23 +2,31 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast'
 import StartPage from './pages/StartPage'
 import LandingPage from './pages/LandingPage'
+import ConsentPage from './pages/ConsentPage'
 import GamePage from './pages/GamePage'
 import ResultPage from './pages/ResultPage'
 import DisplayPage from './pages/DisplayPage'
+import SectorPage from './pages/Screen/SectorPage'
 
 function App() {
   return (
     <Router>
       <Toaster position="top-center" />
       <Routes>
-        {/* Root Redirect to Display */}
+        {/* Root Redirect to Entry */}
         <Route path="/" element={<Navigate to="/start/etcio2026" replace />} />
 
-        {/* Entry Point: Scan Badge */}
-        <Route path="/start/:eventId" element={<LandingPage />} />
+        {/* Mandatory Consent Page (New Entry Point) */}
+        <Route path="/start/:eventId" element={<ConsentPage />} />
+
+        {/* Scanning Page (Moved from /start) */}
+        <Route path="/scan/:eventId" element={<LandingPage />} />
 
         {/* Manual Registration Page */}
         <Route path="/register/:eventId" element={<StartPage />} />
+
+        {/* Sector Selection Page */}
+        <Route path="/sector/:sessionId" element={<SectorPage />} />
 
         {/* Game Page */}
         <Route path="/game/:sessionId" element={<GamePage />} />

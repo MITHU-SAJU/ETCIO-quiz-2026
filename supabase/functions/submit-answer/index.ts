@@ -58,15 +58,17 @@ serve(async (req) => {
     // 4. Calculate score
     let baseScore = 0
     if (selectedOption) {
-      const { data: optionData, error: optError } = await supabaseClient
-        .from('question_options')
-        .select('score')
-        .eq('question_id', questionId)
-        .eq('option_key', selectedOption)
-        .single()
+      const selectedKeys = selectedOption.split(',')
       
-      if (!optError && optionData) {
-        baseScore = optionData.score
+      const { data: optionsData, error: optError } = await supabaseClient
+        .from('question_options')
+        .select('option_key, score')
+        .eq('question_id', questionId)
+        .in('option_key', selectedKeys)
+      
+      if (!optError && optionsData) {
+        // Sum scores of all selected options
+        baseScore = optionsData.reduce((acc, opt) => acc + opt.score, 0)
       }
     }
 

@@ -16,3 +16,9 @@ export const callFunction = async (functionName, payload) => {
   if (error) throw error
   return data
 }
+
+export const callRPC = async (functionName, payload) => {
+  const { data, error } = await supabase.rpc(functionName, payload)
+  if (error) throw error
+  return data
+}
