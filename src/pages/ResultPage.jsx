@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { callFunction } from "../lib/supabase";
@@ -11,6 +11,7 @@ export default function ResultPage() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [countdown, setCountdown] = useState(10);
+  const hasSpoken = useRef(false);
 
   // 1. Timer Logic
   useEffect(() => {
@@ -30,12 +31,63 @@ export default function ResultPage() {
     }
   }, [countdown, data, navigate]);
 
+  const speak = (text) => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    
+    // Helper to perform actual speech
+    const performSpeech = (availableVoices) => {
+      synth.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Strictly prefer high-quality humanistic FEMALE voices
+      const preferredVoice = availableVoices.find(v => {
+        const name = v.name.toLowerCase();
+        return v.lang.startsWith('en') && (
+          name.includes('female') || 
+          name.includes('samantha') || 
+          name.includes('zira') || 
+          name.includes('victoria') || 
+          name.includes('tessa') || 
+          name.includes('moira') ||
+          (name.includes('google') && name.includes('english') && !name.includes('male'))
+        );
+      }) || availableVoices.find(v => v.name.toLowerCase().includes('female'))
+         || availableVoices.find(v => v.lang.startsWith('en-US') && !v.name.toLowerCase().includes('male'))
+         || availableVoices[0];
+
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      synth.speak(utterance);
+    };
+
+    let voices = synth.getVoices();
+    if (voices.length > 0) {
+      performSpeech(voices);
+    } else {
+      // Wait for voices to load
+      synth.onvoiceschanged = () => {
+        const updatedVoices = synth.getVoices();
+        performSpeech(updatedVoices);
+        synth.onvoiceschanged = null; // Clean up
+      };
+    }
+  };
+
   // Fetch Results
   useEffect(() => {
     async function fetchResult() {
       try {
         const result = await callFunction("get-result", { sessionId });
         setData(result);
+        if (result?.user?.name && !hasSpoken.current) {
+          hasSpoken.current = true;
+          speak(`Thank you, ${result.user.name}, For sharing your perspective..`);
+        }
       } catch (error) {
         toast.error("Failed to load result");
         console.error(error);

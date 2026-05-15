@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Landmark, Factory, ChevronRight } from "lucide-react";
@@ -25,6 +25,54 @@ export default function SectorPage() {
     const { sessionId } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+
+    const speak = (text) => {
+        const synth = window.speechSynthesis;
+        if (!synth) return;
+        
+        const performSpeech = (availableVoices) => {
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            const preferredVoice = availableVoices.find(v => {
+                const name = v.name.toLowerCase();
+                return v.lang.startsWith('en') && (
+                    name.includes('female') || 
+                    name.includes('samantha') || 
+                    name.includes('zira') || 
+                    name.includes('victoria') || 
+                    name.includes('tessa') || 
+                    name.includes('moira') ||
+                    (name.includes('google') && name.includes('english') && !name.includes('male'))
+                );
+            }) || availableVoices.find(v => v.name.toLowerCase().includes('female'))
+               || availableVoices.find(v => v.lang.startsWith('en-US') && !v.name.toLowerCase().includes('male'))
+               || availableVoices[0];
+
+            if (preferredVoice) utterance.voice = preferredVoice;
+            utterance.rate = 0.95;
+            utterance.pitch = 1.0;
+            synth.speak(utterance);
+        };
+
+        let voices = synth.getVoices();
+        if (voices.length > 0) {
+            performSpeech(voices);
+        } else {
+            synth.onvoiceschanged = () => {
+                const updatedVoices = synth.getVoices();
+                performSpeech(updatedVoices);
+                synth.onvoiceschanged = null;
+            };
+        }
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            speak("Select your sector");
+        }, 500);
+        return () => clearTimeout(timeout);
+    }, []);
 
     const handleSectorSelect = async (sectorId) => {
         setLoading(true);

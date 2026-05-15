@@ -74,6 +74,65 @@ export default function LandingPage() {
     return () => stopCamera();
   }, [startCamera, stopCamera]);
 
+  useEffect(() => {
+    if (cameraReady) {
+      const timeout = setTimeout(() => {
+        speak("Please scan your ID to get started");
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [cameraReady]);
+
+  // =========================
+  // VOICE FEEDBACK
+  // =========================
+  const speak = (text) => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    
+    // Helper to perform actual speech
+    const performSpeech = (availableVoices) => {
+      synth.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Strictly prefer high-quality humanistic FEMALE voices
+      const preferredVoice = availableVoices.find(v => {
+        const name = v.name.toLowerCase();
+        return v.lang.startsWith('en') && (
+          name.includes('female') || 
+          name.includes('samantha') || 
+          name.includes('zira') || 
+          name.includes('victoria') || 
+          name.includes('tessa') || 
+          name.includes('moira') ||
+          (name.includes('google') && name.includes('english') && !name.includes('male'))
+        );
+      }) || availableVoices.find(v => v.name.toLowerCase().includes('female'))
+         || availableVoices.find(v => v.lang.startsWith('en-US') && !v.name.toLowerCase().includes('male'))
+         || availableVoices[0];
+
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      synth.speak(utterance);
+    };
+
+    let voices = synth.getVoices();
+    if (voices.length > 0) {
+      performSpeech(voices);
+    } else {
+      // Wait for voices to load (common in Chrome)
+      synth.onvoiceschanged = () => {
+        const updatedVoices = synth.getVoices();
+        performSpeech(updatedVoices);
+        synth.onvoiceschanged = null; // Clean up
+      };
+    }
+  };
+
   // =========================
   // CAPTURE IMAGE
   // =========================
@@ -107,6 +166,7 @@ export default function LandingPage() {
 
       if (result?.userFound && result?.user) {
         toast.success(`Welcome ${result.user.name}`);
+        speak(`Welcome ${result.user.name}`);
 
         const session = await callFunction("create-session", {
           eventCode: eventId,
@@ -126,9 +186,16 @@ export default function LandingPage() {
         throw new Error("Session creation failed");
       }
 
+      const extractedName = result?.extractedName || "";
+      const voiceMsg = extractedName 
+        ? `Sorry ${extractedName}, we couldn't find your name. Please register.`
+        : "Sorry, we couldn't find your name. Please register manually.";
+      
       toast(result?.message || "User not found. Please register manually.");
+      speak(voiceMsg);
+
       navigate(`/register/${eventId}`, {
-        state: { prefill: { name: result?.extractedName || "" } },
+        state: { prefill: { name: extractedName } },
       });
     } catch (err) {
       console.error("SCAN ERROR:", err);

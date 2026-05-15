@@ -20,13 +20,50 @@ export default function GamePage() {
   const synthRef = useRef(window.speechSynthesis)
 
   const speak = (text) => {
-    if (!synthRef.current) return
-    synthRef.current.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.rate = 1.0
-    utterance.pitch = 1.0
-    synthRef.current.speak(utterance)
-  }
+    if (!synthRef.current) return;
+    
+    // Helper to perform actual speech
+    const performSpeech = (availableVoices) => {
+      synthRef.current.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Strictly prefer high-quality humanistic FEMALE voices
+      const preferredVoice = availableVoices.find(v => {
+        const name = v.name.toLowerCase();
+        return v.lang.startsWith('en') && (
+          name.includes('female') || 
+          name.includes('samantha') || 
+          name.includes('zira') || 
+          name.includes('victoria') || 
+          name.includes('tessa') || 
+          name.includes('moira') ||
+          (name.includes('google') && name.includes('english') && !name.includes('male'))
+        );
+      }) || availableVoices.find(v => v.name.toLowerCase().includes('female'))
+         || availableVoices.find(v => v.lang.startsWith('en-US') && !v.name.toLowerCase().includes('male'))
+         || availableVoices[0];
+
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      synthRef.current.speak(utterance);
+    };
+
+    let voices = synthRef.current.getVoices();
+    if (voices.length > 0) {
+      performSpeech(voices);
+    } else {
+      // Wait for voices to load
+      synthRef.current.onvoiceschanged = () => {
+        const updatedVoices = synthRef.current.getVoices();
+        performSpeech(updatedVoices);
+        synthRef.current.onvoiceschanged = null; // Clean up
+      };
+    }
+  };
 
   const fetchQuestions = async () => {
     if (questions.length > 0) {
